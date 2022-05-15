@@ -6,10 +6,7 @@ Analysis Geo 880**
 | Semester:      | FS22                              |
 |----------------|---------------------------------- |
 | **Data:**      | Wild Boar Movement Data           |
-| **Title:**     | The influence of temperature and  |
-|                |  precipitation on the movement    |
-|                |  and use of habitat of wild boar  |
-|                |  in Switzerland                   |
+| **Title:**     | The influence of temperature and precipitation on the movement and use of habitat of wild boar in Switzerland       |
 | **Student 1:** | Carmen Pfoster                    |
 | **Student 2:** | Vibiga Vinotharajah               |
 
