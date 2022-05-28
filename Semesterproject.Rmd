@@ -1,7 +1,7 @@
 ---
-title: The title of your Semesterproject
+title: The influence of temperature and precipitation on the movement and use of habitat of wild boar in Switzerland
 subtitle: A subtle subtitle
-author: Firstname1 Lastname1 and Firstname2 Lastname2
+author: Vibiga Vinotharajah and Carmen Pfoster
 output: html_document
 
 ---
@@ -37,13 +37,40 @@ Society philosophy merciful selfish sexuality depths overcome madness. Morality 
 Against holiest pinnacle mountains merciful ideal society play disgust will ubermensch ultimate pinnacle victorious. Snare value law gains battle pious intentions revaluation strong. Insofar snare faith ideal oneself.
 
 ```{r}
+devtools::install_github("ComputationalMovementAnalysis/ComputationalMovementAnalysisData")
 library(ComputationalMovementAnalysisData)
 library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(sf)
+library(lubridate)
+library(adehabitatHR)
 
 # Include tables with the function "kable"
 
 knitr::kable(head(wildschwein_BE))
+
+#loading wildboar data
+wildschwein <- wildschwein_BE
+wildschwein <- st_as_sf(wildschwein,
+                        coords = c("E", "N"), 
+                        crs = 2056,
+                        remove = FALSE)
 ```
+
+
+```{r}
+#assigning season to each measurement point
+wildschwein <- wildschwein %>% 
+  mutate(Month = format(as.Date(DatetimeUTC), "%m"))
+  
+wildschwein <- wildschwein %>% 
+  mutate(season = ifelse(wildschwein$Month == "12" | wildschwein$Month == "01" | wildschwein$Month == "02", "winter",
+                    ifelse(wildschwein$Month == "03" | wildschwein$Month == "04" | wildschwein$Month == "05", "spring",
+                    ifelse(wildschwein$Month == "06" | wildschwein$Month == "07" | wildschwein$Month == "08", "summer",
+                    ifelse(wildschwein$Month == "09" | wildschwein$Month == "10" | wildschwein$Month == "11", "autumn", "no")))))
+```
+
 
 <!-- the following is just a placeholder text, remove it!-->
 Revaluation evil aversion ultimate decrepit disgust decrepit eternal-return noble faithful pinnacle. Truth ascetic inexpedient decrepit free. Ubermensch free merciful mountains endless fearful decieve reason mountains will decrepit strong selfish depths. Overcome faith snare gains oneself transvaluation.
