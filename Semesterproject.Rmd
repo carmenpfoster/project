@@ -45,7 +45,8 @@ library(tidyverse)
 library(sf)
 library(lubridate)
 library(adehabitatHR)
-
+library(tmap)
+tmap_mode("view")
 # Include tables with the function "kable"
 
 knitr::kable(head(wildschwein_BE))
@@ -69,6 +70,36 @@ wildschwein <- wildschwein %>%
                     ifelse(wildschwein$Month == "03" | wildschwein$Month == "04" | wildschwein$Month == "05", "spring",
                     ifelse(wildschwein$Month == "06" | wildschwein$Month == "07" | wildschwein$Month == "08", "summer",
                     ifelse(wildschwein$Month == "09" | wildschwein$Month == "10" | wildschwein$Month == "11", "autumn", "no")))))
+```
+
+```{r}
+ueli <- filter(wildschwein, TierID == "1")
+sabine <- filter(wildschwein, TierID == "2")
+nicole <- filter(wildschwein, TierID == "5")
+
+
+ggplot(ueli, aes(E,N, colour=season)) +
+  geom_point()+
+  ggtitle("Movement of Ueli (ID=1)")
+
+ggplot(sabine, aes(E,N, colour=season)) +
+  geom_point()+
+  ggtitle("Movement of Sabine (ID=2)")
+  
+ggplot(nicole, aes(E,N, colour=season)) +
+  geom_point()+
+  ggtitle("Movement of Nicole (ID=5)")
+```
+
+```{r}
+tm_shape(ueli)+
+  tm_dots(col="season")
+
+tm_shape(sabine)+
+  tm_dots(col="season")
+
+tm_shape(nicole)+
+  tm_dots(col="season")
 ```
 
 
