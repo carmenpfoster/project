@@ -46,6 +46,7 @@ library(sf)
 library(lubridate)
 library(adehabitatHR)
 library(tmap)
+library(readr)
 tmap_mode("view")
 # Include tables with the function "kable"
 
@@ -100,6 +101,38 @@ tm_shape(sabine)+
 
 tm_shape(nicole)+
   tm_dots(col="season")
+```
+
+```{r}
+## Reading the weather data
+weatherData <- read_delim("order_103728_data.txt", delim = ";")
+
+# Creating additional dataframe, based on the legend.txt for adding
+# important info to our dataset
+
+stn <- c("CRM","NEU")
+stn_names <- c("Cressier","Neuchaetel")
+koord_E <- c(7.067, 6.95)
+koord_N <- c(47.05,47.00)
+hoehe <- c(430,485) # in meters
+
+legend <- data.frame(stn,stn_names,koord_E,koord_N,hoehe)
+```
+
+
+```{r}
+# Joining the two dataframes
+data_comb <- full_join(weatherData, legend, by="stn") %>% na.omit()
+
+# Converting to an sf object
+data_sf <- st_as_sf(data_comb, coords = c("koord_E", "koord_N"))
+data_sf <- data_sf %>% 
+  mutate(date = format(ymd(time)))
+```
+
+```{r}
+wildschwein <- wildschwein %>% 
+  mutate(date = format(as.Date(DatetimeUTC)))
 ```
 
 
