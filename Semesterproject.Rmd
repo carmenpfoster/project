@@ -37,7 +37,6 @@ Society philosophy merciful selfish sexuality depths overcome madness. Morality 
 Against holiest pinnacle mountains merciful ideal society play disgust will ubermensch ultimate pinnacle victorious. Snare value law gains battle pious intentions revaluation strong. Insofar snare faith ideal oneself.
 
 ```{r}
-devtools::install_github("ComputationalMovementAnalysis/ComputationalMovementAnalysisData")
 library(ComputationalMovementAnalysisData)
 library(ggplot2)
 library(dplyr)
@@ -45,8 +44,10 @@ library(tidyverse)
 library(sf)
 library(lubridate)
 library(adehabitatHR)
+library(adehabitatLT)
 library(tmap)
 library(readr)
+library(trajr)
 tmap_mode("view")
 # Include tables with the function "kable"
 
@@ -127,12 +128,34 @@ data_comb <- full_join(weatherData, legend, by="stn") %>% na.omit()
 # Converting to an sf object
 data_sf <- st_as_sf(data_comb, coords = c("koord_E", "koord_N"))
 data_sf <- data_sf %>% 
-  mutate(date = format(ymd(time)))
+  mutate(date = ymd(time)) %>% 
+  mutate(tre200d0 = as.numeric(tre200d0))
+
+data_sf <- data_sf %>% 
+  group_by(date) %>% 
+  mutate(temp = mean(tre200d0)) %>% 
+  st_drop_geometry()
+
+cressier <- data_sf %>% 
+  filter(stn == "CRM")
 ```
 
 ```{r}
 wildschwein <- wildschwein %>% 
-  mutate(date = format(as.Date(DatetimeUTC)))
+  mutate(date = as.Date(DatetimeUTC))
+
+wildschwein <- left_join(wildschwein, cressier, by = "date")
+```
+
+```{r}
+#subset spring
+wildschwein_spring <- wildschwein %>% 
+  filter(season == "spring")
+
+wildschwein_spring$DatetimeUTC <- as.Date.POSIXlt(strptime(as.character(wildschwein_spring$DatetimeUTC), "%Y-%m-%d %H:%M:%S")
+)
+
+spring <- as.ltraj(xy = wildschwein_spring$geometry, date = wildschwein_spring$DatetimeUTC, id = wildschwein_spring$TierID)
 ```
 
 
