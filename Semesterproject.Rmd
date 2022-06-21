@@ -1,5 +1,5 @@
 ---
-title: The title of your Semesterproject
+title: The effects of weather on wild boar movement
 subtitle: A subtle subtitle
 author: Carmen Pfoster and Vibiga Vinotharajah
 output: html_document
