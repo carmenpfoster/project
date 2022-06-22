@@ -47,7 +47,6 @@ library(adehabitatHR)
 library(adehabitatLT)
 library(tmap)
 library(readr)
-library(trajr)
 tmap_mode("view")
 # Include tables with the function "kable"
 
@@ -75,33 +74,35 @@ wildschwein <- wildschwein %>%
 ```
 
 ```{r}
-ueli <- filter(wildschwein, TierID == "1")
-sabine <- filter(wildschwein, TierID == "2")
-nicole <- filter(wildschwein, TierID == "5")
+# plots for presentations
+#ueli <- filter(wildschwein, TierID == "1")
+#sabine <- filter(wildschwein, TierID == "2")
+#nicole <- filter(wildschwein, TierID == "5")
 
 
-ggplot(ueli, aes(E,N, colour=season)) +
-  geom_point()+
-  ggtitle("Movement of Ueli (ID=1)")
+#ggplot(ueli, aes(E,N, colour=season)) +
+  #geom_point()+
+  #ggtitle("Movement of Ueli (ID=1)")
 
-ggplot(sabine, aes(E,N, colour=season)) +
-  geom_point()+
-  ggtitle("Movement of Sabine (ID=2)")
+#ggplot(sabine, aes(E,N, colour=season)) +
+  #geom_point()+
+  #ggtitle("Movement of Sabine (ID=2)")
   
-ggplot(nicole, aes(E,N, colour=season)) +
-  geom_point()+
-  ggtitle("Movement of Nicole (ID=5)")
+#ggplot(nicole, aes(E,N, colour=season)) +
+  #geom_point()+
+  #ggtitle("Movement of Nicole (ID=5)")
 ```
 
 ```{r}
-tm_shape(ueli)+
-  tm_dots(col="season")
+# plots for presentations
+#tm_shape(ueli)+
+ # tm_dots(col="season")
 
-tm_shape(sabine)+
-  tm_dots(col="season")
+#tm_shape(sabine)+
+ # tm_dots(col="season")
 
-tm_shape(nicole)+
-  tm_dots(col="season")
+#tm_shape(nicole)+
+ # tm_dots(col="season")
 ```
 
 ```{r}
@@ -148,14 +149,113 @@ wildschwein <- left_join(wildschwein, cressier, by = "date")
 ```
 
 ```{r}
-#subset spring
-wildschwein_spring <- wildschwein %>% 
-  filter(season == "spring")
+ueli <- filter(wildschwein, TierID == "1")
+sabine <- filter(wildschwein, TierID == "2")
+nicole <- filter(wildschwein, TierID == "5")
 
-wildschwein_spring$DatetimeUTC <- as.Date.POSIXlt(strptime(as.character(wildschwein_spring$DatetimeUTC), "%Y-%m-%d %H:%M:%S")
-)
+ggplot(ueli, aes(E,N, colour=temp)) +
+  geom_point()+
+  ggtitle("Movement of Ueli (ID=1)")
 
-spring <- as.ltraj(xy = wildschwein_spring$geometry, date = wildschwein_spring$DatetimeUTC, id = wildschwein_spring$TierID)
+ggplot(sabine, aes(E,N, colour=temp)) +
+  geom_point()+
+  ggtitle("Movement of Sabine (ID=2)")
+  
+ggplot(nicole, aes(E,N, colour=temp)) +
+  geom_point()+
+  ggtitle("Movement of Nicole (ID=5)")
+```
+
+```{r}
+#testing segmentation on ueli
+ueli <- filter(wildschwein, TierID == "1")
+ueli <- ueli %>% 
+  mutate(
+    stepLength = sqrt((lag(E,1)-E)^2+(lag(E,1)-E)^2))
+
+summary(ueli$stepLength)
+
+ggplot(ueli, aes(stepLength)) +
+  geom_histogram(binwidth = 1) +
+  geom_vline(xintercept = mean(ueli$stepLength,na.rm = TRUE))
+
+ueli <- ueli %>%
+  mutate(
+    static = stepLength < mean(ueli$stepLength,na.rm = TRUE)
+  ) 
+
+ueli_dailysummary <- ueli %>% 
+  group_by(time, season, temp) %>% 
+  summarise(daily_distance = sum(stepLength, na.rm = TRUE))
+
+
+```
+
+```{r}
+ggplot(ueli_dailysummary, aes(x=temp, y=daily_distance, col = season)) + geom_point()+geom_smooth(method=lm)+labs(title = "scatterplot ueli with trend per season")
+
+ggplot(ueli_dailysummary, aes(x=temp, y=daily_distance, col = season)) + geom_point()+labs(title = "scatterplot ueli per season without trend")
+
+ggplot(ueli_dailysummary, aes(x=temp, y=daily_distance)) + geom_point()+geom_smooth(method=lm)+labs(title = "scatterplot ueli with overall trend")
+
+ggplot(ueli_dailysummary, aes(x=temp, y=daily_distance)) + geom_point()+labs(title = "scatterplot ueli without trend")
+```
+
+
+```{r}
+# calculating steplength for every wild boar (euclidean distance between sampling points)
+wildschwein_steplength <- wildschwein %>% 
+  group_by(TierID) %>% 
+  mutate(
+    stepLength = sqrt((lag(E,1)-E)^2+(lag(E,1)-E)^2))
+
+summary(wildschwein_steplength$stepLength)
+
+#histogram steplength, line == mean
+ggplot(wildschwein_steplength, aes(stepLength)) +
+  geom_histogram(binwidth = 1) +
+  geom_vline(xintercept = mean(wildschwein_steplength$stepLength,na.rm = TRUE))
+
+#steplength < mean steplength --> static (to be discussed!!)
+wildschwein_steplength <- wildschwein_steplength %>%
+  mutate(
+    static = stepLength < mean(wildschwein_steplength$stepLength,na.rm = TRUE)
+  ) 
+
+#calculating daily distance per wild boar --> Achtung: Annahme dass alle regelmässige Messungen über den gesamten Tag haben (wurde noch nicht geprüft)
+wildschwein_dailysummary <- wildschwein_steplength %>% 
+  group_by(TierID, time, season, temp) %>% 
+  summarise(daily_distance = sum(stepLength, na.rm = TRUE))
+```
+
+```{r}
+ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance, col = season)) + geom_point(size=0.8)+geom_smooth(method=lm)+labs(title = "scatterplot all wildboars with trend per season")
+
+ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance, col = season)) + geom_point(size=0.9)+labs(title = "scatterplot all wildboars per season without trend")
+
+ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance)) + geom_point(size=0.9)+geom_smooth(method=lm)+labs(title = "scatterplot all wildboars with overall trend")
+
+ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance)) + geom_point(size=0.9)+labs(title = "scatterplot all wildboars without trend")
+```
+
+```{r}
+# übersicht temperature und pro tag zurückgelegte distanz für jedes einzelne wildschwein
+ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance, col = season)) +
+  geom_point()+
+  facet_wrap(~TierID,labeller = label_both)
+```
+
+
+```{r}
+# einzelner plot pro wildschwein in gross (gleicher input wie oben mit facet_wrap)
+#vielleicht sieht man so spannende Muster besser
+wild_boars <- c(unique(wildschwein_dailysummary$TierID))
+
+for (i in wild_boars){
+  subs <- subset(wildschwein_dailysummary, TierID == i) %>% 
+  ggplot(aes(x=temp, y=daily_distance, col=season))+geom_point()+labs(title = "TierID", subtitle = as.character(i))
+  print(subs)
+}
 ```
 
 
