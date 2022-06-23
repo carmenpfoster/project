@@ -1,7 +1,13 @@
 ---
+<<<<<<< HEAD
 title: The effects of weather on wild boar movement
 subtitle: A subtle subtitle
 author: Carmen Pfoster and Vibiga Vinotharajah
+=======
+title: The influence of temperature and precipitation on the movement and use of habitat of wild boar in Switzerland
+subtitle: A subtle subtitle
+author: Vibiga Vinotharajah and Carmen Pfoster
+>>>>>>> 4a51df9809582b19cda44f6599fd635938037ff7
 output: html_document
 
 ---
@@ -44,18 +50,137 @@ In this project, we aim to analyse the effects of weather on wild boar movement 
 ```{r}
 library(ComputationalMovementAnalysisData)
 library(ggplot2)
-
+library(dplyr)
+library(tidyverse)
+library(sf)
+library(lubridate)
+library(adehabitatHR)
+library(adehabitatLT)
+library(tmap)
+library(readr)
+library(trajr)
+tmap_mode("view")
 # Include tables with the function "kable"
 
 knitr::kable(head(wildschwein_BE))
+
+#loading wildboar data
+wildschwein <- wildschwein_BE
+wildschwein <- st_as_sf(wildschwein,
+                        coords = c("E", "N"), 
+                        crs = 2056,
+                        remove = FALSE)
 ```
 
+<<<<<<< HEAD
 ## Literature Review
 Since there are some studies, which already analysed the effects of weather on wild boar movement, it is important to discuss and present the main statements of them.
 In 1986, Dardaillon conducted a study with wild boar from the Southern France (Dardaillon 1986). The author analysed the seasonal habitat selection and use by wild boars in relation to six habitat types (Dardaillon 1986: 251). In his study, the author discussed with his results that the estimated autumn to spring density is higher than the summer one (Dardaillon 1986: 264). In the summer season, wild boars tend to emigrate to agricultural crops because of what their movement is higher in warm season. Dardaillon does not focus on the effects of weather on wild boar, but this study shows that there are seasonal changes which influence the wild boar movement.
 Morelle et al. reviewed the literature on wild boar movement ecology with a movement ecology framework. In their review they try to increase the knowledge of the drivers and mechanisms of the spatial behaviour of wild boar (Morelle et al. 2015: 16). In this study, it is stated that to find out where and when the wild boars move external factors, for example seasonality of resources, must be considered (Morelle et al. 2015: 19-20). The study discusses that wild boar can adapt to the seasonality of food resources, where the reduce their movement and home range in masting trees rich areas in autumn (Morelle et al. 2015: 20). Furthermore, Morelle and his colleagues present in a table that wild boar movement decreases at low temperatures, there is increased activity in humid air conditions and snow cover limits the wild boar movement at local and regional levels (Morelle et al. 2015: 23).
 The study from Thurfjell and his colleagues (2014) discuss the effects of weather on movement of wild boars in Sweden. They used weather data, especially temperature, precipitation, and snow depth. The seasons were divided into five different seasons, where they divided summer into early and late summer (Thurfjell 2014: 468). The results from their study show that wild boar decrease their movement in precipitation during winter and at low temperatures. Wild boar increased their movement in the late summer season. Here one can see that Morelle and his colleagues’ reviews literature about weather effects on wild boar movement stated the same arguments (2015: 20). 
 
+=======
+
+```{r}
+#assigning season to each measurement point
+wildschwein <- wildschwein %>% 
+  mutate(Month = format(as.Date(DatetimeUTC), "%m"))
+  
+wildschwein <- wildschwein %>% 
+  mutate(season = ifelse(wildschwein$Month == "12" | wildschwein$Month == "01" | wildschwein$Month == "02", "winter",
+                    ifelse(wildschwein$Month == "03" | wildschwein$Month == "04" | wildschwein$Month == "05", "spring",
+                    ifelse(wildschwein$Month == "06" | wildschwein$Month == "07" | wildschwein$Month == "08", "summer",
+                    ifelse(wildschwein$Month == "09" | wildschwein$Month == "10" | wildschwein$Month == "11", "autumn", "no")))))
+```
+
+```{r}
+ueli <- filter(wildschwein, TierID == "1")
+sabine <- filter(wildschwein, TierID == "2")
+nicole <- filter(wildschwein, TierID == "5")
+
+
+ggplot(ueli, aes(E,N, colour=season)) +
+  geom_point()+
+  ggtitle("Movement of Ueli (ID=1)")
+
+ggplot(sabine, aes(E,N, colour=season)) +
+  geom_point()+
+  ggtitle("Movement of Sabine (ID=2)")
+  
+ggplot(nicole, aes(E,N, colour=season)) +
+  geom_point()+
+  ggtitle("Movement of Nicole (ID=5)")
+```
+
+```{r}
+tm_shape(ueli)+
+  tm_dots(col="season")
+
+tm_shape(sabine)+
+  tm_dots(col="season")
+
+tm_shape(nicole)+
+  tm_dots(col="season")
+```
+
+```{r}
+## Reading the weather data
+weatherData <- read_delim("order_103728_data.txt", delim = ";")
+
+# Creating additional dataframe, based on the legend.txt for adding
+# important info to our dataset
+
+stn <- c("CRM","NEU")
+stn_names <- c("Cressier","Neuchaetel")
+koord_E <- c(7.067, 6.95)
+koord_N <- c(47.05,47.00)
+hoehe <- c(430,485) # in meters
+
+legend <- data.frame(stn,stn_names,koord_E,koord_N,hoehe)
+```
+
+
+```{r}
+# Joining the two dataframes
+data_comb <- full_join(weatherData, legend, by="stn") %>% na.omit()
+
+# Converting to an sf object
+data_sf <- st_as_sf(data_comb, coords = c("koord_E", "koord_N"))
+data_sf <- data_sf %>% 
+  mutate(date = ymd(time)) %>% 
+  mutate(tre200d0 = as.numeric(tre200d0))
+
+data_sf <- data_sf %>% 
+  group_by(date) %>% 
+  mutate(temp = mean(tre200d0)) %>% 
+  st_drop_geometry()
+
+cressier <- data_sf %>% 
+  filter(stn == "CRM")
+```
+
+```{r}
+wildschwein <- wildschwein %>% 
+  mutate(date = as.Date(DatetimeUTC))
+
+wildschwein <- left_join(wildschwein, cressier, by = "date")
+```
+
+```{r}
+#subset spring
+wildschwein_spring <- wildschwein %>% 
+  filter(season == "spring")
+
+wildschwein_spring$DatetimeUTC <- as.Date.POSIXlt(strptime(as.character(wildschwein_spring$DatetimeUTC), "%Y-%m-%d %H:%M:%S")
+)
+
+spring <- as.ltraj(xy = wildschwein_spring$geometry, date = wildschwein_spring$DatetimeUTC, id = wildschwein_spring$TierID)
+```
+
+
+<!-- the following is just a placeholder text, remove it!-->
+Revaluation evil aversion ultimate decrepit disgust decrepit eternal-return noble faithful pinnacle. Truth ascetic inexpedient decrepit free. Ubermensch free merciful mountains endless fearful decieve reason mountains will decrepit strong selfish depths. Overcome faith snare gains oneself transvaluation.
+>>>>>>> 4a51df9809582b19cda44f6599fd635938037ff7
 
 ```{r}
 # include plots automatically
