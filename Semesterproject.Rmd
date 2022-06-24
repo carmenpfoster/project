@@ -126,8 +126,8 @@ wildschwein <- wildschwein %>%
 
 ```{r}
 ## Reading the weather data
-weatherData <- read_delim("order_103728_data.txt", delim = ";")
-
+weatherData <- read_delim("order_103728_data_temp.txt", delim = ";")
+precipData <- read_delim("order_103873_data_precip.txt", delim = ";")
 # Creating additional dataframe, based on the legend.txt for adding
 # important info to our dataset
 
@@ -142,21 +142,26 @@ legend <- data.frame(stn,stn_names,koord_E,koord_N,hoehe)
 
 
 ```{r}
-# Joining the two dataframes
+# Joining the station and temperature dataframes
 data_comb <- full_join(weatherData, legend, by="stn") %>% na.omit()
+data_comb <- full_join(data_comb, precipData, by= c("stn","time")) %>% na.omit()
+
+#removing unnecessary columns
+data_comb <- subset(data_comb, select = -c(qtre200d0, mtre200d0))
 
 # Converting to an sf object
 data_sf <- st_as_sf(data_comb, coords = c("koord_E", "koord_N"))
 data_sf <- data_sf %>% 
   mutate(date = ymd(time)) %>% 
-  mutate(tre200d0 = as.numeric(tre200d0))
+  mutate(tre200d0 = as.numeric(tre200d0)) %>% 
+  mutate(rka150d0 = as.numeric(rka150d0))
 
 data_sf <- data_sf %>% 
   group_by(date) %>% 
-  mutate(temp = mean(tre200d0)) %>% 
+  mutate(temp = mean(tre200d0), precip = mean(rka150d0)) %>% 
   st_drop_geometry()
 
-cressier <- data_sf %>% 
+temp_precip <- data_sf %>% 
   filter(stn == "CRM")
 ```
 
@@ -164,7 +169,8 @@ cressier <- data_sf %>%
 wildschwein <- wildschwein %>% 
   mutate(date = as.Date(DatetimeUTC))
 
-wildschwein <- left_join(wildschwein, cressier, by = "date")
+wildschwein <- left_join(wildschwein, temp_precip, by = "date")
+wildschwein <- subset(wildschwein, select = -c(tre200d0, rka150d0))
 ```
 
 ```{r}
@@ -181,6 +187,18 @@ ggplot(sabine, aes(E,N, colour=temp)) +
   ggtitle("Movement of Sabine (ID=2)")
   
 ggplot(nicole, aes(E,N, colour=temp)) +
+  geom_point()+
+  ggtitle("Movement of Nicole (ID=5)")
+
+ggplot(ueli, aes(E,N, colour=precip)) +
+  geom_point()+
+  ggtitle("Movement of Ueli (ID=1)")
+
+ggplot(sabine, aes(E,N, colour=precip)) +
+  geom_point()+
+  ggtitle("Movement of Sabine (ID=2)")
+  
+ggplot(nicole, aes(E,N, colour=precip)) +
   geom_point()+
   ggtitle("Movement of Nicole (ID=5)")
 ```
@@ -204,20 +222,47 @@ ueli <- ueli %>%
   ) 
 
 ueli_dailysummary <- ueli %>% 
-  group_by(time, season, temp) %>% 
-  summarise(daily_distance = sum(stepLength, na.rm = TRUE))
-
-
+  group_by(time, season, temp, precip) %>% 
+  summarise(daily_distance = sum(stepLength, na.rm = TRUE),
+            ratio = sum(static == TRUE)/(sum(static == TRUE)+ sum(static == FALSE)))
 ```
 
 ```{r}
+ueli1 = subset(ueli, time=="20140601")
+ggplot(ueli1, aes(x = E, y = N, col = static)) +
+  geom_point()+geom_path()
+```
+
+
+```{r}
+# ueli temperature daily distance
 ggplot(ueli_dailysummary, aes(x=temp, y=daily_distance, col = season)) + geom_point()+geom_smooth(method=lm)+labs(title = "scatterplot ueli with trend per season")
 
 ggplot(ueli_dailysummary, aes(x=temp, y=daily_distance, col = season)) + geom_point()+labs(title = "scatterplot ueli per season without trend")
 
 ggplot(ueli_dailysummary, aes(x=temp, y=daily_distance)) + geom_point()+geom_smooth(method=lm)+labs(title = "scatterplot ueli with overall trend")
 
+#ueli temperature static vs movement
 ggplot(ueli_dailysummary, aes(x=temp, y=daily_distance)) + geom_point()+labs(title = "scatterplot ueli without trend")
+
+ggplot(ueli_dailysummary, aes(x=temp, y=ratio, col = season)) + geom_point()+geom_smooth(method=lm)+labs(title = "scatterplot ueli with trend per season")
+
+ggplot(ueli_dailysummary, aes(x=temp, y=ratio, col = season)) + geom_point()+labs(title = "scatterplot ueli per season without trend")
+
+ggplot(ueli_dailysummary, aes(x=temp, y=ratio)) + geom_point()+geom_smooth(method=lm)+labs(title = "scatterplot ueli with overall trend")
+
+ggplot(ueli_dailysummary, aes(x=temp, y=ratio)) + geom_point()+labs(title = "scatterplot ueli without trend")
+```
+
+```{r}
+#ueli precipitation
+ggplot(ueli_dailysummary, aes(x=precip, y=daily_distance, col = season)) + geom_point()+geom_smooth(method=lm)+labs(title = "scatterplot ueli with trend per season")
+
+ggplot(ueli_dailysummary, aes(x=precip, y=daily_distance, col = season)) + geom_point()+labs(title = "scatterplot ueli per season without trend")
+
+ggplot(ueli_dailysummary, aes(x=precip, y=daily_distance)) + geom_point()+geom_smooth(method=lm)+labs(title = "scatterplot ueli with overall trend")
+
+ggplot(ueli_dailysummary, aes(x=precip, y=daily_distance)) + geom_point()+labs(title = "scatterplot ueli without trend")
 ```
 
 
@@ -243,11 +288,12 @@ wildschwein_steplength <- wildschwein_steplength %>%
 
 #calculating daily distance per wild boar --> Achtung: Annahme dass alle regelmässige Messungen über den gesamten Tag haben (wurde noch nicht geprüft)
 wildschwein_dailysummary <- wildschwein_steplength %>% 
-  group_by(TierID, time, season, temp) %>% 
+  group_by(TierID, time, season, temp, precip) %>% 
   summarise(daily_distance = sum(stepLength, na.rm = TRUE))
 ```
 
 ```{r}
+# all wild boar temperature
 ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance, col = season)) + geom_point(size=0.8)+geom_smooth(method=lm)+labs(title = "scatterplot all wildboars with trend per season")
 
 ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance, col = season)) + geom_point(size=0.9)+labs(title = "scatterplot all wildboars per season without trend")
@@ -258,8 +304,27 @@ ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance)) + geom_point(siz
 ```
 
 ```{r}
+#all wild boar precipitation
+ggplot(wildschwein_dailysummary, aes(x=precip, y=daily_distance, col = season)) + geom_point(size=0.8)+geom_smooth(method=lm)+labs(title = "scatterplot all wildboars with trend per season")
+
+ggplot(wildschwein_dailysummary, aes(x=precip, y=daily_distance, col = season)) + geom_point(size=0.9)+labs(title = "scatterplot all wildboars per season without trend")
+
+ggplot(wildschwein_dailysummary, aes(x=precip, y=daily_distance)) + geom_point(size=0.9)+geom_smooth(method=lm)+labs(title = "scatterplot all wildboars with overall trend")
+
+ggplot(wildschwein_dailysummary, aes(x=precip, y=daily_distance)) + geom_point(size=0.9)+labs(title = "scatterplot all wildboars without trend")
+```
+
+
+```{r}
 # übersicht temperature und pro tag zurückgelegte distanz für jedes einzelne wildschwein
 ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance, col = season)) +
+  geom_point()+
+  facet_wrap(~TierID,labeller = label_both)
+```
+
+```{r}
+# übersicht precipitation und pro tag zurückgelegte distanz für jedes einzelne wildschwein
+ggplot(wildschwein_dailysummary, aes(x=precip, y=daily_distance, col = season)) +
   geom_point()+
   facet_wrap(~TierID,labeller = label_both)
 ```
@@ -275,6 +340,12 @@ for (i in wild_boars){
   ggplot(aes(x=temp, y=daily_distance, col=season))+geom_point()+labs(title = "TierID", subtitle = as.character(i))
   print(subs)
 }
+```
+
+```{r}
+#boxplot daily distance season
+ggplot(wildschwein_dailysummary, aes(x = season, y = daily_distance)) + 
+  geom_boxplot()
 ```
 
 
