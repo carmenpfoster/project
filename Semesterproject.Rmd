@@ -285,6 +285,13 @@ ggplot(ueli_dailysummary, aes(x=precip, y=ratio)) + geom_point()+geom_smooth(met
 ggplot(ueli_dailysummary, aes(x=precip, y=ratio)) + geom_point()+labs(title = "scatterplot ueli without trend")
 ```
 
+```{r}
+#ueli movement ratio and seasons
+ggplot(ueli_dailysummary, aes(x=season, y = ratio))+
+  geom_point()
+```
+
+
 
 ```{r}
 # calculating steplength for every wild boar (euclidean distance between sampling points)
@@ -395,6 +402,10 @@ for (i in wild_boars){
 ```{r}
 #boxplot daily distance season
 ggplot(wildschwein_dailysummary, aes(x = season, y = daily_distance)) + 
+  geom_boxplot()
+
+#boxplot movement ratio and seasons
+ggplot(wildschwein_dailysummary, aes(x=season, y = ratio))+
   geom_boxplot()
 ```
 
