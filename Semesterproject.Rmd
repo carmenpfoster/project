@@ -44,7 +44,7 @@ Interactions between different factors can have consequences for population dyna
 
 An important factor, which affects the environmental conditions of animals and therefore the animal movement, is weather (Thurfjell et al. 2014: 467). The weather can influence the mobility, the food availability, or the energetic demands of animals. There are a few studies which analyse the effects of weather on wild boar movement (Thurjfell et al. 2014; Lemel et al. 2003; Morelle et al. 2015). 
 
-In this project, we aim to analyse the effects of weather on wild boar movement in the year 2014. According to different studies (Thurfjell et al. 2014; Morelle et al. 2015), wild boar movement is expected to be affected by weather factors. Wild boar is an omnivorous mammal mostly ranging in border zones between pastures and forests (Lemel et al. 2003: 29). In human-dominated landscapes wild boar move less during the day than during the night (Thurfjell et al. 2014: 467). Apart from that cold weather increases the movement in the night, which means a higher demand of energy used (Lemel et al. 2003: 32). In times of snow cover, wild boars decrease their movement duration and distance (Thurfjell et al. 2014: 468). Precipitation increases the movement duration and distance (Morelle et al. 2015: 20). Different studies show that there are effects of weather on wild boar movement. Most of these studies used wild boar movement data from Sweden (Thurjfell et al. 2014; Lemel et al. 2003). Since the wild boar movement data, provided for this project, is from Switzerland, the aim of this project is to analyse the influence of temperature and precipitation on the movement and use of habitat of wild boar in Switzerland. Thus, the research question for this study is: “Is there a seasonal difference in the wild boar moving pattern (clustering vs. moving but also regarding the location and properties of their habitat?”.
+In this project, we aim to analyse the effects of weather on wild boar movement in the year 2014. According to different studies (Thurfjell et al. 2014; Morelle et al. 2015), wild boar movement is expected to be affected by weather factors. Wild boar is an omnivorous mammal mostly ranging in border zones between pastures and forests (Lemel et al. 2003: 29). In human-dominated landscapes wild boar move less during the day than during the night (Thurfjell et al. 2014: 467). Apart from that cold weather increases the movement in the night, which means a higher demand of energy used (Lemel et al. 2003: 32). In times of snow cover, wild boars decrease their movement duration and distance (Thurfjell et al. 2014: 468). Precipitation increases the movement duration and distance (Morelle et al. 2015: 20). Different studies show that there are effects of weather on wild boar movement. Most of these studies used wild boar movement data from Sweden (Thurjfell et al. 2014; Lemel et al. 2003). Since the wild boar movement data, provided for this project, is from Switzerland, the aim of this project is to analyse the influence of temperature and precipitation on the movement and use of habitat of wild boar in Switzerland. Thus, the research question for this study is: “Is there a seasonal difference in the wild boar moving pattern (clustering vs. moving) but also regarding the location and properties of their habitat?”.
 
 
 ```{r}
@@ -58,7 +58,7 @@ library(adehabitatHR)
 library(adehabitatLT)
 library(tmap)
 library(readr)
-tmap_mode("view")
+tmap_mode("plot")
 # Include tables with the function "kable"
 
 knitr::kable(head(wildschwein_BE))
@@ -78,7 +78,32 @@ In 1986, Dardaillon conducted a study with wild boar from the Southern France (D
 Morelle et al. reviewed the literature on wild boar movement ecology with a movement ecology framework. In their review they try to increase the knowledge of the drivers and mechanisms of the spatial behaviour of wild boar (Morelle et al. 2015: 16). In this study, it is stated that to find out where and when the wild boars move external factors, for example seasonality of resources, must be considered (Morelle et al. 2015: 19-20). The study discusses that wild boar can adapt to the seasonality of food resources, where the reduce their movement and home range in masting trees rich areas in autumn (Morelle et al. 2015: 20). Furthermore, Morelle and his colleagues present in a table that wild boar movement decreases at low temperatures, there is increased activity in humid air conditions and snow cover limits the wild boar movement at local and regional levels (Morelle et al. 2015: 23).
 The study from Thurfjell and his colleagues (2014) discuss the effects of weather on movement of wild boars in Sweden. They used weather data, especially temperature, precipitation, and snow depth. The seasons were divided into five different seasons, where they divided summer into early and late summer (Thurfjell 2014: 468). The results from their study show that wild boar decrease their movement in precipitation during winter and at low temperatures. Wild boar increased their movement in the late summer season. Here one can see that Morelle and his colleagues’ reviews literature about weather effects on wild boar movement stated the same arguments (2015: 20). 
 
-=======
+## Material and Methods
+
+The following analysis is mainly based on the wild boar data set provided by the ZHAW. Between May 2014 and October 2016 18 different wild boars were tracked with GPS collars in the area between Lake Neuchâtel and Lake Biel. Generally, the location was recorded every 15 minutes. In addition to the time stamp and the coordinates, the moonillumination was indicated for every measurement as well but this information was not used in this study. 
+
+As the goal of this research is to analyze the influence of weather and season on the movement patterns of wild boar the following additional data was used:
+- Mean daily temperature [°C] of two weather stations (Neuchâtel and Cressier)
+- daily precipitation [mm] of the same two weather stations
+Both datasets were accessed via the IDAweb portal of the Federal Office of Meteorology and Climatology MeteoSwiss.
+
+On ??? Figure ??? one can see the whole study area and the two locations of the weather stations.
+
+For reasons of simplicity, the wild boar data was classified into the meteorological seasons, which always classifies the whole months into one season:
+
+| Winter      | December, January, February  |
+| Spring      | March, April, May            |
+| Summer      | June, July, August           |
+| Autumn      | September, October, November |
+
+On the weather data some pre-processing was required too. To consider both meteo stations, the mean temperature and precipitation of the two measurements was calculated for every day. After that the weather data frame was joined to the wild boar data frame.
+
+### Conceptualization of movement
+Is there a seasonal difference in the wild boar moving pattern (clustering vs. moving)
+To analyse the wild boar moving patterns two different approaches were implemented:
+
+- To get an indicator for the total daily movement, the euclidean distance along all tracking locations per day was calculated for every individual wild boar. Then the total daily distance covered could be opposed to the temperature and precipitation as well as the seasons.
+- For the analysis of the amount of clustering that happened per day, the trajectories were segmented, similarly to the segmentation in Exercise 3. For every point the distance to the three preceding and following points were calculated. The mean of these six distances can be seen as the mean step length. Then all mean step lengths were classified as static when they are below the mean step length of all mean step lengths. Then the ratio of static points in all point was calculated. This was then again opposed to the temperature and precipitation data and the season classification like the before described daily movement.
 
 ```{r}
 #assigning season to each measurement point
@@ -132,7 +157,7 @@ precipData <- read_delim("order_103873_data_precip.txt", delim = ";")
 # important info to our dataset
 
 stn <- c("CRM","NEU")
-stn_names <- c("Cressier","Neuchaetel")
+stn_names <- c("Cressier","Neuchâtel")
 koord_E <- c(7.067, 6.95)
 koord_N <- c(47.05,47.00)
 hoehe <- c(430,485) # in meters
@@ -423,14 +448,6 @@ ggplot(schreck_locations, aes(E, N)) +
 
 ```
 
-
-
-
-
-## Material and Methods
-
-<!-- the following is just a placeholder text, remove it!-->
-Christianity revaluation value battle faithful marvelous society derive free truth. Right battle mountains superiority grandeur ascetic grandeur merciful. Derive against intentions burying salvation ocean. Right intentions dead victorious ideal spirit evil ultimate joy. Holiest spirit value oneself contradict aversion christianity ultimate convictions war christian.
 
 ## Results
 
