@@ -1,13 +1,7 @@
 ---
-<<<<<<< HEAD
-title: The effects of weather on wild boar movement
-subtitle: A subtle subtitle
-author: Carmen Pfoster and Vibiga Vinotharajah
-=======
 title: The influence of temperature and precipitation on the movement and use of habitat of wild boar in Switzerland
 subtitle: A subtle subtitle
 author: Vibiga Vinotharajah and Carmen Pfoster
->>>>>>> 4a51df9809582b19cda44f6599fd635938037ff7
 output: html_document
 
 ---
@@ -58,7 +52,7 @@ library(adehabitatHR)
 library(adehabitatLT)
 library(tmap)
 library(readr)
-tmap_mode("plot")
+tmap_mode("view")
 # Include tables with the function "kable"
 
 knitr::kable(head(wildschwein_BE))
@@ -71,7 +65,6 @@ wildschwein <- st_as_sf(wildschwein,
                         remove = FALSE)
 ```
 
-<<<<<<< HEAD
 ## Literature Review
 Since there are some studies, which already analysed the effects of weather on wild boar movement, it is important to discuss and present the main statements of them.
 In 1986, Dardaillon conducted a study with wild boar from the Southern France (Dardaillon 1986). The author analysed the seasonal habitat selection and use by wild boars in relation to six habitat types (Dardaillon 1986: 251). In his study, the author discussed with his results that the estimated autumn to spring density is higher than the summer one (Dardaillon 1986: 264). In the summer season, wild boars tend to emigrate to agricultural crops because of what their movement is higher in warm season. Dardaillon does not focus on the effects of weather on wild boar, but this study shows that there are seasonal changes which influence the wild boar movement.
@@ -119,7 +112,7 @@ wildschwein <- wildschwein %>%
 
 ```{r}
 # plots for presentations
-#ueli <- filter(wildschwein, TierID == "1")
+ueli <- filter(wildschwein, TierID == "1")
 #sabine <- filter(wildschwein, TierID == "2")
 #nicole <- filter(wildschwein, TierID == "5")
 
@@ -139,8 +132,8 @@ wildschwein <- wildschwein %>%
 
 ```{r}
 # plots for presentations
-#tm_shape(ueli)+
- # tm_dots(col="season")
+tm_shape(ueli)+
+  tm_dots(col="season")
 
 #tm_shape(sabine)+
  # tm_dots(col="season")
@@ -264,7 +257,7 @@ ueli_dailysummary <- ueli %>%
 ```
 
 ```{r}
-ueli1 = subset(ueli, time=="20140704")
+ueli1 = subset(ueli, time=="20140529")
 ggplot(ueli1, aes(x = E, y = N, col = static)) +
   geom_point()+geom_path()
 ```
@@ -437,16 +430,7 @@ ggplot(wildschwein_dailysummary, aes(x=season, y = ratio))+
 
 <!-- the following is just a placeholder text, remove it!-->
 Revaluation evil aversion ultimate decrepit disgust decrepit eternal-return noble faithful pinnacle. Truth ascetic inexpedient decrepit free. Ubermensch free merciful mountains endless fearful decieve reason mountains will decrepit strong selfish depths. Overcome faith snare gains oneself transvaluation.
->>>>>>> 4a51df9809582b19cda44f6599fd635938037ff7
 
-```{r}
-# include plots automatically
-
-ggplot(schreck_locations, aes(E, N)) +
-  geom_point() +
-  coord_map()
-
-```
 
 
 ## Results
