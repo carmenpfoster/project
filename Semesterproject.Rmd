@@ -7,23 +7,7 @@ output: html_document
 ---
 
 
-<!-- You can add  your R Code with Code chunks-->
 
-```{r, echo = FALSE, warning=FALSE, message=FALSE}
-
-# You can set chunk options individually per code chunk, as was done with this
-# code chunk.
-
-# echo = FALSE           hides the code from the generated output
-# warning = FALSE        hides warnings from the generated output
-# message = FALSE        hides messages from the generated output
-
-# To set the setting for all code chunks, use the following code:
-
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
-
-install.packages("devtools")
-```
 
 
 ## Abstract
