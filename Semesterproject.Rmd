@@ -25,7 +25,7 @@ An important factor, which affects the environmental conditions of animals and t
 In this project, we aim to analyse the effects of weather on wild boar movement in the year 2014. According to different studies (Thurfjell et al. 2014; Morelle et al. 2015), wild boar movement is expected to be affected by weather factors. Wild boar is an omnivorous mammal mostly ranging in border zones between pastures and forests (Lemel et al. 2003: 29). In human-dominated landscapes wild boar move less during the day than during the night (Thurfjell et al. 2014: 467). Apart from that cold weather increases the movement in the night, which means a higher demand of energy used (Lemel et al. 2003: 32). In times of snow cover, wild boars decrease their movement duration and distance (Thurfjell et al. 2014: 468). Precipitation increases the movement duration and distance (Morelle et al. 2015: 20). Different studies show that there are effects of weather on wild boar movement. Most of these studies used wild boar movement data from Sweden (Thurjfell et al. 2014; Lemel et al. 2003). Since the wild boar movement data, provided for this project, is from Switzerland, the aim of this project is to analyse the influence of temperature and precipitation on the movement and use of habitat of wild boar in Switzerland. Thus, the research question for this study is: “Is there a seasonal difference in the wild boar moving pattern (clustering vs. moving) but also regarding the location and properties of their habitat?”.
 
 
-```{r}
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
 library(ComputationalMovementAnalysisData)
 library(ggplot2)
 library(dplyr)
@@ -82,7 +82,7 @@ To analyse the wild boar moving patterns two different approaches were implement
 - To get an indicator for the total daily movement, the euclidean distance along all tracking locations per day was calculated for every individual wild boar. Then the total daily distance covered could be opposed to the temperature and precipitation as well as the seasons.
 - For the analysis of the amount of clustering that happened per day, the trajectories were segmented, similarly to the segmentation in Exercise 3. For every point the distance to the three preceding and following points were calculated. The mean of these six distances can be seen as the mean step length. Then all mean step lengths were classified as static when they are below the mean step length of all mean step lengths. Then the ratio of static points in all point was calculated. This was then again opposed to the temperature and precipitation data and the season classification like the before described daily movement.
 
-```{r}
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
 #assigning season to each measurement point
 wildschwein <- wildschwein %>% 
   mutate(Month = format(as.Date(DatetimeUTC), "%m"))
@@ -94,7 +94,7 @@ wildschwein <- wildschwein %>%
                     ifelse(wildschwein$Month == "09" | wildschwein$Month == "10" | wildschwein$Month == "11", "autumn", "no")))))
 ```
 
-```{r}
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
 # plots for presentations
 ueli <- filter(wildschwein, TierID == "1")
 #sabine <- filter(wildschwein, TierID == "2")
@@ -114,7 +114,7 @@ ueli <- filter(wildschwein, TierID == "1")
   #ggtitle("Movement of Nicole (ID=5)")
 ```
 
-```{r}
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
 # plots for presentations
 tm_shape(ueli)+
   tm_dots(col="season")
@@ -126,7 +126,7 @@ tm_shape(ueli)+
  # tm_dots(col="season")
 ```
 
-```{r}
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
 ## Reading the weather data
 weatherData <- read_delim("order_103728_data_temp.txt", delim = ";")
 precipData <- read_delim("order_103873_data_precip.txt", delim = ";")
@@ -143,7 +143,7 @@ legend <- data.frame(stn,stn_names,koord_E,koord_N,hoehe)
 ```
 
 
-```{r}
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
 # Joining the station and temperature dataframes
 data_comb <- full_join(weatherData, legend, by="stn") %>% na.omit()
 data_comb <- full_join(data_comb, precipData, by= c("stn","time")) %>% na.omit()
@@ -152,22 +152,38 @@ data_comb <- full_join(data_comb, precipData, by= c("stn","time")) %>% na.omit()
 data_comb <- subset(data_comb, select = -c(qtre200d0, mtre200d0))
 
 # Converting to an sf object
-data_sf <- st_as_sf(data_comb, coords = c("koord_E", "koord_N"))
+data_sf <- st_as_sf(data_comb, coords = c("koord_E", "koord_N"), crs = 4326)
 data_sf <- data_sf %>% 
   mutate(date = ymd(time)) %>% 
   mutate(tre200d0 = as.numeric(tre200d0)) %>% 
   mutate(rka150d0 = as.numeric(rka150d0))
 
-data_sf <- data_sf %>% 
+data_sf_lv95 <- st_transform(data_sf, 2056)
+```
+
+```{r, echo = TRUE, warning = FALSE, message = FALSE}
+#Figure 1
+wildschwein_smry <- summarise(wildschwein)
+
+wildschwein_convex <- st_convex_hull(wildschwein_smry)
+
+
+tm_shape(wildschwein_convex)+
+  tm_polygons(col="blue", title='convex hull')+
+  tm_shape(data_sf_lv95)+
+  tm_dots(col="red", title='Weather station')+
+  tm_layout(title= 'Figure 1: Overview of the measurement area')
+```
+
+```{r}
+data_sf_lv95 <- data_sf_lv95 %>% 
   group_by(date) %>% 
   mutate(temp = mean(tre200d0), precip = mean(rka150d0)) %>% 
   st_drop_geometry()
 
-temp_precip <- data_sf %>% 
+temp_precip <- data_sf_lv95 %>% 
   filter(stn == "CRM")
-```
 
-```{r}
 wildschwein <- wildschwein %>% 
   mutate(date = as.Date(DatetimeUTC))
 
@@ -213,12 +229,18 @@ ueli <- ueli %>%
     stepLength = sqrt((lag(E,1)-E)^2+(lag(E,1)-E)^2),
     stepMean = rowMeans(                       
       cbind(                                   
-        sqrt((lag(E,3)-E)^2+(lag(E,3)-E)^2),   
+        sqrt((lag(E,6)-E)^2+(lag(E,6)-E)^2),
+        sqrt((lag(E,5)-E)^2+(lag(E,5)-E)^2),
+        sqrt((lag(E,4)-E)^2+(lag(E,4)-E)^2),
+        sqrt((lag(E,3)-E)^2+(lag(E,3)-E)^2),
         sqrt((lag(E,2)-E)^2+(lag(E,2)-E)^2),   
         sqrt((lag(E,1)-E)^2+(lag(E,1)-E)^2),   
         sqrt((E-lead(E,1))^2+(E-lead(E,1))^2),  
         sqrt((E-lead(E,2))^2+(E-lead(E,2))^2),
-        sqrt((E-lead(E,3))^2+(E-lead(E,3))^2)  
+        sqrt((E-lead(E,3))^2+(E-lead(E,3))^2),
+        sqrt((E-lead(E,4))^2+(E-lead(E,4))^2),
+        sqrt((E-lead(E,5))^2+(E-lead(E,5))^2),
+        sqrt((E-lead(E,6))^2+(E-lead(E,6))^2)
         )                                        
     )
   )
@@ -303,12 +325,18 @@ wildschwein_steplength <- wildschwein %>%
     stepLength = sqrt((lag(E,1)-E)^2+(lag(E,1)-E)^2),
     stepMean = rowMeans(                       
       cbind(                                   
+        sqrt((lag(E,6)-E)^2+(lag(E,6)-E)^2),
+        sqrt((lag(E,5)-E)^2+(lag(E,5)-E)^2),
+        sqrt((lag(E,4)-E)^2+(lag(E,4)-E)^2),
         sqrt((lag(E,3)-E)^2+(lag(E,3)-E)^2),   
         sqrt((lag(E,2)-E)^2+(lag(E,2)-E)^2),   
         sqrt((lag(E,1)-E)^2+(lag(E,1)-E)^2),   
         sqrt((E-lead(E,1))^2+(E-lead(E,1))^2),  
         sqrt((E-lead(E,2))^2+(E-lead(E,2))^2),
-        sqrt((E-lead(E,3))^2+(E-lead(E,3))^2)  
+        sqrt((E-lead(E,3))^2+(E-lead(E,3))^2),
+        sqrt((E-lead(E,4))^2+(E-lead(E,4))^2),
+        sqrt((E-lead(E,5))^2+(E-lead(E,5))^2),
+        sqrt((E-lead(E,6))^2+(E-lead(E,6))^2)
         )                                        
     )
   )
