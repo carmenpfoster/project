@@ -39,17 +39,6 @@ tmap_mode("view")
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 ```
 
-``` {r loading wildboar data}
-# Include tables with the function "kable"
-knitr::kable(head(wildschwein_BE))
-
-#loading wildboar data
-wildschwein <- wildschwein_BE
-wildschwein <- st_as_sf(wildschwein,
-                        coords = c("E", "N"), 
-                        crs = 2056,
-                        remove = FALSE)
-```
 
 ## Literature Review
 Since there are some studies, which already analysed the effects of weather on wild boar movement, it is important to discuss and present the main statements of them.
@@ -61,6 +50,23 @@ The study from Thurfjell and his colleagues (2014) discuss the effects of weathe
 
 The following analysis is mainly based on the wild boar data set provided by the ZHAW. Between May 2014 and October 2016 18 different wild boars were tracked with GPS collars in the area between Lake Neuchâtel and Lake Biel. Generally, the location was recorded every 15 minutes. In addition to the time stamp and the coordinates, the moonillumination was indicated for every measurement as well but this information was not used in this study. 
 
+``` {r loading wildboar data}
+#loading wildboar data
+wildschwein <- wildschwein_BE
+wildschwein <- st_as_sf(wildschwein,
+                        coords = c("E", "N"), 
+                        crs = 2056,
+                        remove = FALSE)
+
+#drop unnecessary columns
+wildschwein <- subset(wildschwein, select = -c(CollarID, day, moonilumination))
+
+# Include tables with the function "kable"
+knitr::kable(head(wildschwein))
+```
+Table 1: Overview of the used wild boar data structure
+
+
 As the goal of this research is to analyze the influence of weather and season on the movement patterns of wild boar the following additional data was used:
 - Mean daily temperature [°C] of two weather stations (Neuchâtel and Cressier)
 - daily precipitation [mm] of the same two weather stations
@@ -68,17 +74,6 @@ Both datasets were accessed via the IDAweb portal of the Federal Office of Meteo
 
 On ??? Figure ??? one can see the whole study area and the two locations of the weather stations.
 
-```{r assigning season}
-#assigning season to each measurement point
-wildschwein <- wildschwein %>% 
-  mutate(Month = format(as.Date(DatetimeUTC), "%m"))
-  
-wildschwein <- wildschwein %>% 
-  mutate(season = ifelse(wildschwein$Month == "12" | wildschwein$Month == "01" | wildschwein$Month == "02", "winter",
-                    ifelse(wildschwein$Month == "03" | wildschwein$Month == "04" | wildschwein$Month == "05", "spring",
-                    ifelse(wildschwein$Month == "06" | wildschwein$Month == "07" | wildschwein$Month == "08", "summer",
-                    ifelse(wildschwein$Month == "09" | wildschwein$Month == "10" | wildschwein$Month == "11", "autumn", "no")))))
-```
 
 ```{r loading weather data}
 # Reading the weather data
@@ -112,6 +107,10 @@ data_sf <- data_sf %>%
   mutate(rka150d0 = as.numeric(rka150d0))
 
 data_sf_lv95 <- st_transform(data_sf, 2056)
+
+map_stations <- data_sf_lv95 %>% 
+  group_by(stn_names) %>% 
+  summarise()
 ```
 
 ```{r}
@@ -121,11 +120,12 @@ wildschwein_smry <- summarise(wildschwein)
 wildschwein_convex <- st_convex_hull(wildschwein_smry)
 
 tm_shape(wildschwein_convex)+
-  tm_polygons(col="blue", title='convex hull')+
-  tm_shape(data_sf_lv95)+
-  tm_dots(col="red", title='Weather station')+
-  tm_layout(title= 'Figure 1: Overview of the measurement area')
+  tm_polygons(col="green", alpha = 0.25, group='convex hull')+
+  tm_shape(map_stations)+
+  tm_dots(col="red", group='Weather station')
 ```
+Figure ??: Overview of the study area (used weather stations and convex polygon of all wildboar data points)
+
 
 For reasons of simplicity, the wild boar data was classified into the meteorological seasons, which always classifies the whole months into one season:
 
@@ -134,7 +134,36 @@ For reasons of simplicity, the wild boar data was classified into the meteorolog
 | Summer      | June, July, August           |
 | Autumn      | September, October, November |
 
+```{r assigning season}
+#assigning season to each measurement point
+wildschwein <- wildschwein %>% 
+  mutate(Month = format(as.Date(DatetimeUTC), "%m"))
+  
+wildschwein <- wildschwein %>% 
+  mutate(season = ifelse(wildschwein$Month == "12" | wildschwein$Month == "01" | wildschwein$Month == "02", "winter",
+                    ifelse(wildschwein$Month == "03" | wildschwein$Month == "04" | wildschwein$Month == "05", "spring",
+                    ifelse(wildschwein$Month == "06" | wildschwein$Month == "07" | wildschwein$Month == "08", "summer",
+                    ifelse(wildschwein$Month == "09" | wildschwein$Month == "10" | wildschwein$Month == "11", "autumn", "no")))))
+```
+
+
 On the weather data some pre-processing was required too. To consider both meteo stations, the mean temperature and precipitation of the two measurements was calculated for every day. After that the weather data frame was joined to the wild boar data frame.
+
+```{r}
+data_sf_lv95 <- data_sf_lv95 %>% 
+  group_by(date) %>% 
+  mutate(temp = mean(tre200d0), precip = mean(rka150d0)) %>% 
+  st_drop_geometry()
+
+temp_precip <- data_sf_lv95 %>% 
+  filter(stn == "CRM")
+
+wildschwein <- wildschwein %>% 
+  mutate(date = as.Date(DatetimeUTC))
+
+wildschwein <- left_join(wildschwein, temp_precip, by = "date")
+wildschwein <- subset(wildschwein, select = -c(tre200d0, rka150d0))
+```
 
 ### Conceptualization of movement
 Is there a seasonal difference in the wild boar moving pattern (clustering vs. moving)
@@ -143,7 +172,7 @@ To analyse the wild boar moving patterns two different approaches were implement
 - To get an indicator for the total daily movement, the euclidean distance along all tracking locations per day was calculated for every individual wild boar. Then the total daily distance covered could be opposed to the temperature and precipitation as well as the seasons.
 - For the analysis of the amount of clustering that happened per day, the trajectories were segmented, similarly to the segmentation in Exercise 3. For every point the distance to the three preceding and following points were calculated. The mean of these six distances can be seen as the mean step length. Then all mean step lengths were classified as static when they are below the mean step length of all mean step lengths. Then the ratio of static points in all point was calculated. This was then again opposed to the temperature and precipitation data and the season classification like the before described daily movement.
 
-
+<!--
 ```{r}
 # plots for presentations
 #ueli <- filter(wildschwein, TierID == "1")
@@ -176,24 +205,6 @@ To analyse the wild boar moving patterns two different approaches were implement
  # tm_dots(col="season")
 ```
 
-
-```{r}
-data_sf_lv95 <- data_sf_lv95 %>% 
-  group_by(date) %>% 
-  mutate(temp = mean(tre200d0), precip = mean(rka150d0)) %>% 
-  st_drop_geometry()
-
-temp_precip <- data_sf_lv95 %>% 
-  filter(stn == "CRM")
-
-wildschwein <- wildschwein %>% 
-  mutate(date = as.Date(DatetimeUTC))
-
-wildschwein <- left_join(wildschwein, temp_precip, by = "date")
-wildschwein <- subset(wildschwein, select = -c(tre200d0, rka150d0))
-```
-
-<!--
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 ueli <- filter(wildschwein, TierID == "1")
 sabine <- filter(wildschwein, TierID == "2")
@@ -321,7 +332,7 @@ ggplot(ueli_dailysummary, aes(x=season, y = ratio))+
 ```{r}
 # calculating steplength for every wild boar (euclidean distance between sampling points)
 wildschwein_steplength <- wildschwein %>% 
-  group_by(TierID) %>% 
+  group_by(TierName) %>% 
   mutate(
     stepLength = sqrt((lag(E,1)-E)^2+(lag(E,1)-E)^2),
     stepMean = rowMeans(                       
@@ -357,7 +368,7 @@ wildschwein_steplength <- wildschwein_steplength %>%
 
 #calculating daily distance per wild boar --> Achtung: Annahme dass alle regelmässige Messungen über den gesamten Tag haben (wurde noch nicht geprüft)
 wildschwein_dailysummary <- wildschwein_steplength %>% 
-  group_by(TierID, time, season, temp, precip) %>% 
+  group_by(TierName, time, season, temp, precip) %>% 
   summarise(daily_distance = sum(stepLength, na.rm = TRUE),
             ratio = sum(static == TRUE)/(sum(static == TRUE)+ sum(static == FALSE)))
 ```
@@ -438,7 +449,9 @@ for (i in wild_boars){
 ```{r}
 #boxplot daily distance season
 ggplot(wildschwein_dailysummary, aes(x = season, y = daily_distance)) + 
-  geom_boxplot()
+  geom_boxplot()+
+  labs(title = "Distance travelled per day", subtitle = "per wild boar")+
+  ylab("distance [m]")
 ```
 
 This simple boxplot represents the daily distance, how far the wild boars moved, in each season without including the temperature. One can see that the daily distance is farer in autumn and summer compared to winter especially.
@@ -447,7 +460,9 @@ This simple boxplot represents the daily distance, how far the wild boars moved,
 ```{r}
 #boxplot movement ratio and seasons
 ggplot(wildschwein_dailysummary, aes(x=season, y = ratio))+
-  geom_boxplot()
+  geom_boxplot()+
+  labs(title = "Share of static measurement points per day", subtitle = "per wild boar")+
+  ylab("ratio")
 ```
 
 This boxplot shows the ratios from each season. If the ratio is closer to 1 then there is more clustering in the movement than if the ratio is closer to 0. Autumn and winter have the same ratio, but it is important to highlight that in winter the variance is bigger than in the other seasons. The reason is that there is not much data available for winter. The higher the static values are and thus the ratio is bigger, the higher is the clustering. Considering this the season spring has the most clustering from all seasons.
@@ -455,7 +470,12 @@ This boxplot shows the ratios from each season. If the ratio is closer to 1 then
 
 ```{r}
 # all wild boar temperature daily distance
-ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance, col = season)) + geom_point(size=0.8)+geom_smooth(method=lm)+labs(title = "scatterplot all wildboars with trend per season")
+ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance, col = season)) + 
+  geom_point(size=0.9)+
+  geom_smooth(method=lm)+
+  labs(title = "Influence of temperature on the travelled distance per day", subtitle = "per season")+
+  xlab("temperature [°C]")+
+  ylab("distance [m]")
 ```
 
 In this plot one can see the difference between the daily distance per seasons depending on the temperature. The season summer represents more daily distance from wild boars with higher temperatures. Winter shows less daily distance with lower temperature and higher daily distance with higher temperatures. The increase in the season winter is higher than in the season summer, which is represented with the trend lines. In other words, 1 degree warmer in winter has a bigger influence on the movement of wild boars than in other seasons. The season autumn has the most daily distances between the temperatures 0 and 20 degrees. Additionally, the plot shows that with warmer temperatures the daily distances are higher.
@@ -465,7 +485,10 @@ In this plot one can see the difference between the daily distance per seasons d
 # übersicht temperature und pro tag zurückgelegte distanz für jedes einzelne wildschwein
 ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance, col = season)) +
   geom_point()+
-  facet_wrap(~TierID,labeller = label_both)
+  labs(title = "Influence of temperature on the travelled distance per day", subtitle = "per season for all wild boars seperately")+
+  xlab("temperature [°C]")+
+  ylab("distance [m]")+
+  facet_wrap(~TierName,labeller = label_value)
 ```
 
 Looking at each plot from every wild boar, the plots represent how different the movement from each wild boar is. For example, the “TierID 1” wild boar moves a lot in summer and in winter there is almost no movement. “TierID 10” moves a lot in almost every season. Moreover, wild boars with more data points have a bigger influence on the whole regarding the seasons than individual wild boars. Also, the plot shows in the whole that in summer there is more movement than in other seasons.
@@ -478,7 +501,11 @@ Looking at each plot from every wild boar, the plots represent how different the
 
 ```{r}
 #all wild boar precipitation daily distance
-ggplot(wildschwein_dailysummary, aes(x=precip, y=daily_distance, col = season)) + geom_point(size=0.8)+geom_smooth(method=lm)+labs(title = "scatterplot all wildboars with trend per season")
+ggplot(wildschwein_dailysummary, aes(x=precip, y=daily_distance, col = season)) + 
+  geom_point(size=0.9)+geom_smooth(method=lm)+
+  labs(title = "Influence of precipitation on the travelled distance per day", subtitle = "per season")+
+  xlab("precipitation [mm]")+
+  ylab("distance [m]")
 ```
 
 In this plot the precipitation is analysed in connection to daily distance. The precipitation data has lots of 0 precipitation data, which is represented in the trend lines per season. However, one can see that the movement from wild boars is higher in autumn. With higher precipitation the movement in winter increases whereas in summer decreases.
@@ -488,7 +515,10 @@ In this plot the precipitation is analysed in connection to daily distance. The 
 # übersicht precipitation und pro tag zurückgelegte distanz für jedes einzelne wildschwein
 ggplot(wildschwein_dailysummary, aes(x=precip, y=daily_distance, col = season)) +
   geom_point()+
-  facet_wrap(~TierID,labeller = label_both)
+  labs(title = "Influence of precipitation on the travelled distance per day", subtitle = "per season for all wild boars seperately")+
+  xlab("precipitation [mm]")+
+  ylab("distance [m]")+
+  facet_wrap(~TierName,labeller = label_value)
 ```
 
 Here the precipitation and the daily distance for each wild boar is represented individually. Again the 0 precipitation data points are clearly visible and some data points with higher precipitation. In the whole the plots represent that the wild boars are more active in summer precipitation than in winter. If we look at the wild boar individually, one can see that some wild boars only move in winter precipitation and others mostly in summer precipitation. In autumn the precipitation is closer to 0 and because of that the daily distance is higher, whereas in winter the daily distance is lower.
@@ -519,6 +549,7 @@ caroline <- filter(most_measured, TierName == "Caroline")
 miriam <- filter(most_measured, TierName == "Miriam")
 ```
 
+<!--
 ```{r}
 # individual analysis clustering vs. moving
 tm_shape(amos) +
@@ -533,7 +564,7 @@ tm_shape(miriam) +
   tm_dots(col = "static")+
   tmap_options(basemaps = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg")
 ```
-
+-->
 
 ```{r}
 #individual analysis season
@@ -550,6 +581,7 @@ tm_shape(miriam) +
   tmap_options(basemaps = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg")
 ```
 
+<!--
 ```{r}
 #individual analysis temperature
 tm_shape(amos) +
@@ -579,6 +611,7 @@ tm_shape(miriam) +
   tm_dots(col = "precip")+
   tmap_options(basemaps = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg")
 ```
+-->
 
 
 
