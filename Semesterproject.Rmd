@@ -360,6 +360,10 @@ individual plots of wild boar (habitat)
 #individual analysis season
 tm_shape(amos) +
   tm_dots(col = "season")+
+  tm_shape(caroline) +
+  tm_dots(col = "season")+
+  tm_shape(miriam) +
+  tm_dots(col = "season")
   tmap_options(basemaps = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg")
 ```
 
