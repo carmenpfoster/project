@@ -247,48 +247,6 @@ caroline <- filter(most_measured, TierName == "Caroline")
 miriam <- filter(most_measured, TierName == "Miriam")
 ```
 
-<!--
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
-# all wild boar temperature daily distance
-ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance, col = season)) + geom_point(size=0.8)+geom_smooth(method=lm)+labs(title = "scatterplot all wildboars with trend per season")
-
-ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance, col = season)) + geom_point(size=0.9)+labs(title = "scatterplot all wildboars per season without trend")
-
-ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance)) + geom_point(size=0.9)+geom_smooth(method=lm)+labs(title = "scatterplot all wildboars with overall trend")
-
-ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance)) + geom_point(size=0.9)+labs(title = "scatterplot all wildboars without trend")
-
-#all wild boar temperature ratio
-ggplot(wildschwein_dailysummary, aes(x=temp, y=ratio, col = season)) + geom_point(size=0.8)+geom_smooth(method=lm)+labs(title = "scatterplot all wildboars with trend per season")
-
-ggplot(wildschwein_dailysummary, aes(x=temp, y=ratio, col = season)) + geom_point(size=0.9)+labs(title = "scatterplot all wildboars per season without trend")
-
-ggplot(wildschwein_dailysummary, aes(x=temp, y=ratio)) + geom_point(size=0.9)+geom_smooth(method=lm)+labs(title = "scatterplot all wildboars with overall trend")
-
-ggplot(wildschwein_dailysummary, aes(x=temp, y=ratio)) + geom_point(size=0.9)+labs(title = "scatterplot all wildboars without trend")
-```
-
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
-#all wild boar precipitation daily distance
-ggplot(wildschwein_dailysummary, aes(x=precip, y=daily_distance, col = season)) + geom_point(size=0.8)+geom_smooth(method=lm)+labs(title = "scatterplot all wildboars with trend per season")
-
-ggplot(wildschwein_dailysummary, aes(x=precip, y=daily_distance, col = season)) + geom_point(size=0.9)+labs(title = "scatterplot all wildboars per season without trend")
-
-ggplot(wildschwein_dailysummary, aes(x=precip, y=daily_distance)) + geom_point(size=0.9)+geom_smooth(method=lm)+labs(title = "scatterplot all wildboars with overall trend")
-
-ggplot(wildschwein_dailysummary, aes(x=precip, y=daily_distance)) + geom_point(size=0.9)+labs(title = "scatterplot all wildboars without trend")
-
-#all wild boar precipitation ratio
-ggplot(wildschwein_dailysummary, aes(x=precip, y=ratio, col = season)) + geom_point(size=0.8)+geom_smooth(method=lm)+labs(title = "scatterplot all wildboars with trend per season")
-
-ggplot(wildschwein_dailysummary, aes(x=precip, y=ratio, col = season)) + geom_point(size=0.9)+labs(title = "scatterplot all wildboars per season without trend")
-
-ggplot(wildschwein_dailysummary, aes(x=precip, y=ratio)) + geom_point(size=0.9)+geom_smooth(method=lm)+labs(title = "scatterplot all wildboars with overall trend")
-
-ggplot(wildschwein_dailysummary, aes(x=precip, y=ratio)) + geom_point(size=0.9)+labs(title = "scatterplot all wildboars without trend")
-```
--->
-
 
 ## Results
 
@@ -419,7 +377,7 @@ Individual wild boar data show that not all wild boars move a lot in the season 
 
 ## Conclusion
 
-Future Research
+
 
 ## References
 Dardaillon, M. (1986): Seasonal Variations in Habitat Selection and Spatial Distribution of Wild Boar (Sus Scrofa) in the Camargue, Southern France. Behavioural Processes, 13, 251-268.
