@@ -48,7 +48,7 @@ The study from Thurfjell and his colleagues (2014) discuss the effects of weathe
 
 ## Material and Methods
 
-The following analysis is mainly based on the wild boar data set provided by the ZHAW. Between May 2014 and October 2016 18 different wild boars were tracked with GPS collars in the area between Lake Neuchâtel and Lake Biel. Generally, the location was recorded every 15 minutes. In addition to the time stamp and the coordinates, the moonillumination was indicated for every measurement as well but this information was not used in this study. 
+The following analysis is mainly based on the wild boar data set provided by the ZHAW. Between May 2014 and October 2016 18 different wild boars were tracked with GPS collars in the area between Lake Neuchâtel and Lake Biel. Generally, the location was recorded every 15 minutes. In addition to the time stamp and the coordinates, the moonillumination was indicated for every measurement as well but this information was not used in this study. The used information of the dataset can be seen below in Table 1. 
 
 ``` {r loading wildboar data}
 #loading wildboar data
@@ -72,7 +72,7 @@ As the goal of this research is to analyze the influence of weather and season o
 - daily precipitation [mm] of the same two weather stations
 Both datasets were accessed via the IDAweb portal of the Federal Office of Meteorology and Climatology MeteoSwiss.
 
-On ??? Figure ??? one can see the whole study area and the two locations of the weather stations.
+On Figure 1 one can see the whole study area and the two locations of the weather stations.
 
 
 ```{r loading weather data}
@@ -124,7 +124,7 @@ tm_shape(wildschwein_convex)+
   tm_shape(map_stations)+
   tm_dots(col="red", group='Weather station')
 ```
-Figure ??: Overview of the study area (used weather stations and convex polygon of all wildboar data points)
+Figure 1: Overview of the study area (used weather stations and convex polygon of all wildboar data points)
 
 
 For reasons of simplicity, the wild boar data was classified into the meteorological seasons, which always classifies the whole months into one season:
@@ -166,11 +166,10 @@ wildschwein <- subset(wildschwein, select = -c(tre200d0, rka150d0))
 ```
 
 ### Conceptualization of movement
-Is there a seasonal difference in the wild boar moving pattern (clustering vs. moving)
 To analyse the wild boar moving patterns two different approaches were implemented:
 
 - To get an indicator for the total daily movement, the euclidean distance along all tracking locations per day was calculated for every individual wild boar. Then the total daily distance covered could be opposed to the temperature and precipitation as well as the seasons.
-- For the analysis of the amount of clustering that happened per day, the trajectories were segmented, similarly to the segmentation in Exercise 3. For every point the distance to the three preceding and following points were calculated. The mean of these six distances can be seen as the mean step length. Then all mean step lengths were classified as static when they are below the mean step length of all mean step lengths. Then the ratio of static points in all point was calculated. This was then again opposed to the temperature and precipitation data and the season classification like the before described daily movement.
+- For the analysis of the amount of clustering that happened per day, the trajectories were segmented, similarly to the segmentation in Exercise 3. For every point the distance to the six preceding and following points were calculated. The mean of these 12 distances can be seen as the mean step length. Then all mean step lengths were classified as static when they are below the mean step length of all mean step lengths. Finally, the ratio of static points of all points was calculated. This was then again opposed to the temperature and precipitation data and the season classification like the before described daily movement.
 
 <!--
 ```{r}
@@ -373,6 +372,27 @@ wildschwein_dailysummary <- wildschwein_steplength %>%
             ratio = sum(static == TRUE)/(sum(static == TRUE)+ sum(static == FALSE)))
 ```
 
+### Conceptualization of location and properties of the habitat 
+In a second part, the influence of the weather and the seasons is analysed in a more spatial point of view. As there are a lot of variables to consider; besides the land cover (representing the characteristics of the habitat), temperature and precipitation data is used as well as seasonal effects that probably influence the behavior of the wild boars it was decided to analyse spatial patterns in the data only in a qualitative way. Therefore the three wild boar with the most sampling points were seleced for the analysis.
+
+```{r}
+# determining animal with most measurements
+wildschwein_count <- wildschwein_steplength %>%
+  st_drop_geometry() %>% 
+  group_by(TierName) %>% 
+  summarise(n_of_measurements = n())
+
+knitr::kable(wildschwein_count)
+
+ggplot(wildschwein_count, aes(x=TierName, y=n_of_measurements)) +
+  geom_bar(stat="identity")+
+  ggtitle("Overview of measurements per wild boar")+
+  ylab("# of measurements")
+```
+Figure ???
+
+As it can be seen in Figure ?? the wild boars with the most measurements are Caroline, Amos and Miriam. The locations of those three wild boars were then plotted in a map with the Swiss orthofoto as the basemap. Then the points were classified depending on the season, temperature, precipitation or the ratio of static points and searched for interessting patterns.
+
 <!--
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 # all wild boar temperature daily distance
@@ -419,14 +439,14 @@ ggplot(wildschwein_dailysummary, aes(x=precip, y=ratio)) + geom_point(size=0.9)+
 # übersicht temperature und pro tag zurückgelegte distanz für jedes einzelne wildschwein
 ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance, col = season)) +
   geom_point()+
-  facet_wrap(~TierID,labeller = label_both)
+  facet_wrap(~TierName,labeller = label_both)
 ```
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 # übersicht precipitation und pro tag zurückgelegte distanz für jedes einzelne wildschwein
 ggplot(wildschwein_dailysummary, aes(x=precip, y=daily_distance, col = season)) +
   geom_point()+
-  facet_wrap(~TierID,labeller = label_both)
+  facet_wrap(~TierName,labeller = label_both)
 ```
 
 
@@ -526,18 +546,7 @@ Here the precipitation and the daily distance for each wild boar is represented 
 
 individual plots of wild boar (habitat)
 
-```{r}
-# determining animal with most measurements
-wildschwein_count <- wildschwein_steplength %>%
-  st_drop_geometry() %>% 
-  group_by(TierName) %>% 
-  summarise(n_of_measurements = n())
 
-knitr::kable(wildschwein_count)
-
-ggplot(wildschwein_count, aes(x=TierName, y=n_of_measurements)) +
-  geom_bar(stat="identity")
-```
 
 ```{r}
 #analysing habitat for the three wild boars with the most measurement points
