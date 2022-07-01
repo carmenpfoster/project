@@ -171,162 +171,6 @@ To analyse the wild boar moving patterns two different approaches were implement
 - To get an indicator for the total daily movement, the euclidean distance along all tracking locations per day was calculated for every individual wild boar. Then the total daily distance covered could be opposed to the temperature and precipitation as well as the seasons.
 - For the analysis of the amount of clustering that happened per day, the trajectories were segmented, similarly to the segmentation in Exercise 3. For every point the distance to the six preceding and following points were calculated. The mean of these 12 distances can be seen as the mean step length. Then all mean step lengths were classified as static when they are below the mean step length of all mean step lengths. Finally, the ratio of static points of all points was calculated. This was then again opposed to the temperature and precipitation data and the season classification like the before described daily movement.
 
-<!--
-```{r}
-# plots for presentations
-#ueli <- filter(wildschwein, TierID == "1")
-#sabine <- filter(wildschwein, TierID == "2")
-#nicole <- filter(wildschwein, TierID == "5")
-
-
-#ggplot(ueli, aes(E,N, colour=season)) +
-  #geom_point()+
-  #ggtitle("Movement of Ueli (ID=1)")
-
-#ggplot(sabine, aes(E,N, colour=season)) +
-  #geom_point()+
-  #ggtitle("Movement of Sabine (ID=2)")
-  
-#ggplot(nicole, aes(E,N, colour=season)) +
-  #geom_point()+
-  #ggtitle("Movement of Nicole (ID=5)")
-```
-
-```{r}
-# plots for presentations
-#tm_shape(ueli)+
-  #tm_dots(col="season")
-
-#tm_shape(sabine)+
- # tm_dots(col="season")
-
-#tm_shape(nicole)+
- # tm_dots(col="season")
-```
-
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
-ueli <- filter(wildschwein, TierID == "1")
-sabine <- filter(wildschwein, TierID == "2")
-nicole <- filter(wildschwein, TierID == "5")
-
-ggplot(ueli, aes(E,N, colour=temp)) +
-  geom_point()+
-  ggtitle("Movement of Ueli (ID=1)")
-
-ggplot(sabine, aes(E,N, colour=temp)) +
-  geom_point()+
-  ggtitle("Movement of Sabine (ID=2)")
-  
-ggplot(nicole, aes(E,N, colour=temp)) +
-  geom_point()+
-  ggtitle("Movement of Nicole (ID=5)")
-
-ggplot(ueli, aes(E,N, colour=precip)) +
-  geom_point()+
-  ggtitle("Movement of Ueli (ID=1)")
-
-ggplot(sabine, aes(E,N, colour=precip)) +
-  geom_point()+
-  ggtitle("Movement of Sabine (ID=2)")
-  
-ggplot(nicole, aes(E,N, colour=precip)) +
-  geom_point()+
-  ggtitle("Movement of Nicole (ID=5)")
-```
-
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
-#testing segmentation on ueli
-ueli <- filter(wildschwein, TierID == "1")
-ueli <- ueli %>% 
-  mutate(
-    stepLength = sqrt((lag(E,1)-E)^2+(lag(E,1)-E)^2),
-    stepMean = rowMeans(                       
-      cbind(                                   
-        sqrt((lag(E,6)-E)^2+(lag(E,6)-E)^2),
-        sqrt((lag(E,5)-E)^2+(lag(E,5)-E)^2),
-        sqrt((lag(E,4)-E)^2+(lag(E,4)-E)^2),
-        sqrt((lag(E,3)-E)^2+(lag(E,3)-E)^2),
-        sqrt((lag(E,2)-E)^2+(lag(E,2)-E)^2),   
-        sqrt((lag(E,1)-E)^2+(lag(E,1)-E)^2),   
-        sqrt((E-lead(E,1))^2+(E-lead(E,1))^2),  
-        sqrt((E-lead(E,2))^2+(E-lead(E,2))^2),
-        sqrt((E-lead(E,3))^2+(E-lead(E,3))^2),
-        sqrt((E-lead(E,4))^2+(E-lead(E,4))^2),
-        sqrt((E-lead(E,5))^2+(E-lead(E,5))^2),
-        sqrt((E-lead(E,6))^2+(E-lead(E,6))^2)
-        )                                        
-    )
-  )
-
-summary(ueli$stepLength)
-
-ggplot(ueli, aes(stepLength)) +
-  geom_histogram(binwidth = 1) +
-  geom_vline(xintercept = mean(ueli$stepLength,na.rm = TRUE))
-
-ueli <- ueli %>%
-  mutate(
-    static = stepMean < mean(ueli$stepMean,na.rm = TRUE)
-  ) 
-
-ueli_dailysummary <- ueli %>% 
-  group_by(time, season, temp, precip) %>% 
-  summarise(daily_distance = sum(stepLength, na.rm = TRUE),
-            ratio = sum(static == TRUE)/(sum(static == TRUE)+ sum(static == FALSE)))
-```
-
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
-ueli1 = subset(ueli, time=="20140529")
-ggplot(ueli1, aes(x = E, y = N, col = static)) +
-  geom_point()+geom_path()
-```
-
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
-# ueli temperature daily distance
-ggplot(ueli_dailysummary, aes(x=temp, y=daily_distance, col = season)) + geom_point()+geom_smooth(method=lm)+labs(title = "scatterplot ueli with trend per season")
-
-ggplot(ueli_dailysummary, aes(x=temp, y=daily_distance, col = season)) + geom_point()+labs(title = "scatterplot ueli per season without trend")
-
-ggplot(ueli_dailysummary, aes(x=temp, y=daily_distance)) + geom_point()+geom_smooth(method=lm)+labs(title = "scatterplot ueli with overall trend")
-
-#ueli temperature static vs movement
-ggplot(ueli_dailysummary, aes(x=temp, y=daily_distance)) + geom_point()+labs(title = "scatterplot ueli without trend")
-
-ggplot(ueli_dailysummary, aes(x=temp, y=ratio, col = season)) + geom_point()+geom_smooth(method=lm)+labs(title = "scatterplot ueli with trend per season")
-
-ggplot(ueli_dailysummary, aes(x=temp, y=ratio, col = season)) + geom_point()+labs(title = "scatterplot ueli per season without trend")
-
-ggplot(ueli_dailysummary, aes(x=temp, y=ratio)) + geom_point()+geom_smooth(method=lm)+labs(title = "scatterplot ueli with overall trend")
-
-ggplot(ueli_dailysummary, aes(x=temp, y=ratio)) + geom_point()+labs(title = "scatterplot ueli without trend")
-```
-
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
-#ueli precipitation daily distance
-ggplot(ueli_dailysummary, aes(x=precip, y=daily_distance, col = season)) + geom_point()+geom_smooth(method=lm)+labs(title = "scatterplot ueli with trend per season")
-
-ggplot(ueli_dailysummary, aes(x=precip, y=daily_distance, col = season)) + geom_point()+labs(title = "scatterplot ueli per season without trend")
-
-ggplot(ueli_dailysummary, aes(x=precip, y=daily_distance)) + geom_point()+geom_smooth(method=lm)+labs(title = "scatterplot ueli with overall trend")
-
-ggplot(ueli_dailysummary, aes(x=precip, y=daily_distance)) + geom_point()+labs(title = "scatterplot ueli without trend")
-
-#ueli precipitation ratio
-ggplot(ueli_dailysummary, aes(x=precip, y=ratio, col = season)) + geom_point()+geom_smooth(method=lm)+labs(title = "scatterplot ueli with trend per season")
-
-ggplot(ueli_dailysummary, aes(x=precip, y=ratio, col = season)) + geom_point()+labs(title = "scatterplot ueli per season without trend")
-
-ggplot(ueli_dailysummary, aes(x=precip, y=ratio)) + geom_point()+geom_smooth(method=lm)+labs(title = "scatterplot ueli with overall trend")
-
-ggplot(ueli_dailysummary, aes(x=precip, y=ratio)) + geom_point()+labs(title = "scatterplot ueli without trend")
-```
-
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
-#ueli movement ratio and seasons
-ggplot(ueli_dailysummary, aes(x=season, y = ratio))+
-  geom_point()
-```
--->
 
 ```{r}
 # calculating steplength for every wild boar (euclidean distance between sampling points)
@@ -393,6 +237,16 @@ Figure ???
 
 As it can be seen in Figure ?? the wild boars with the most measurements are Caroline, Amos and Miriam. The locations of those three wild boars were then plotted in a map with the Swiss orthofoto as the basemap. Then the points were classified depending on the season, temperature, precipitation or the ratio of static points and searched for interessting patterns.
 
+```{r}
+#analysing habitat for the three wild boars with the most measurement points
+
+most_measured <- filter(wildschwein_steplength, TierName == "Amos" | TierName == "Caroline" | TierName == "Miriam")
+
+amos <- filter(most_measured, TierName == "Amos")
+caroline <- filter(most_measured, TierName == "Caroline")
+miriam <- filter(most_measured, TierName == "Miriam")
+```
+
 <!--
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 # all wild boar temperature daily distance
@@ -432,34 +286,6 @@ ggplot(wildschwein_dailysummary, aes(x=precip, y=ratio, col = season)) + geom_po
 ggplot(wildschwein_dailysummary, aes(x=precip, y=ratio)) + geom_point(size=0.9)+geom_smooth(method=lm)+labs(title = "scatterplot all wildboars with overall trend")
 
 ggplot(wildschwein_dailysummary, aes(x=precip, y=ratio)) + geom_point(size=0.9)+labs(title = "scatterplot all wildboars without trend")
-```
-
-
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
-# übersicht temperature und pro tag zurückgelegte distanz für jedes einzelne wildschwein
-ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance, col = season)) +
-  geom_point()+
-  facet_wrap(~TierName,labeller = label_both)
-```
-
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
-# übersicht precipitation und pro tag zurückgelegte distanz für jedes einzelne wildschwein
-ggplot(wildschwein_dailysummary, aes(x=precip, y=daily_distance, col = season)) +
-  geom_point()+
-  facet_wrap(~TierName,labeller = label_both)
-```
-
-
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
-# einzelner plot pro wildschwein in gross (gleicher input wie oben mit facet_wrap)
-#vielleicht sieht man so spannende Muster besser
-wild_boars <- c(unique(wildschwein_dailysummary$TierID))
-
-for (i in wild_boars){
-  subs <- subset(wildschwein_dailysummary, TierID == i) %>% 
-  ggplot(aes(x=temp, y=daily_distance, col=season))+geom_point()+labs(title = "TierID", subtitle = as.character(i))
-  print(subs)
-}
 ```
 -->
 
@@ -547,17 +373,6 @@ Here the precipitation and the daily distance for each wild boar is represented 
 individual plots of wild boar (habitat)
 
 
-
-```{r}
-#analysing habitat for the three wild boars with the most measurement points
-
-most_measured <- filter(wildschwein_steplength, TierName == "Amos" | TierName == "Caroline" | TierName == "Miriam")
-
-amos <- filter(most_measured, TierName == "Amos")
-caroline <- filter(most_measured, TierName == "Caroline")
-miriam <- filter(most_measured, TierName == "Miriam")
-```
-
 <!--
 ```{r}
 # individual analysis clustering vs. moving
@@ -573,7 +388,6 @@ tm_shape(miriam) +
   tm_dots(col = "static")+
   tmap_options(basemaps = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg")
 ```
--->
 
 ```{r}
 #individual analysis season
@@ -590,7 +404,6 @@ tm_shape(miriam) +
   tmap_options(basemaps = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg")
 ```
 
-<!--
 ```{r}
 #individual analysis temperature
 tm_shape(amos) +
@@ -605,7 +418,6 @@ tm_shape(miriam) +
   tm_dots(col = "temp")+
   tmap_options(basemaps = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg")
 ```
-
 
 ```{r}
 tm_shape(amos) +
