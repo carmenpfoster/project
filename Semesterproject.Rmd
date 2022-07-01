@@ -328,6 +328,20 @@ In this plot one can see the difference between the daily distance per seasons d
 
 
 ```{r}
+#all wild boar temperature ratio
+ggplot(wildschwein_dailysummary, aes(x=temp, y=ratio, col = season)) +
+  geom_point(size=0.8)+
+  geom_smooth(method=lm)+
+  labs(title = "Influence of temperature on the share of static measurement points", subtitle = "per season")+
+  xlab("temperature [°C]")+
+  ylab("distance [m]")
+```
+
+
+
+
+
+```{r}
 # übersicht temperature und pro tag zurückgelegte distanz für jedes einzelne wildschwein
 ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance, col = season)) +
   geom_point()+
@@ -355,6 +369,18 @@ ggplot(wildschwein_dailysummary, aes(x=precip, y=daily_distance, col = season)) 
 ```
 
 In this plot the precipitation is analysed in connection to daily distance. The precipitation data has lots of 0 precipitation data, which is represented in the trend lines per season. However, one can see that the movement from wild boars is higher in autumn. With higher precipitation the movement in winter increases whereas in summer decreases.
+
+
+```{r}
+#all wild boar precipitation ratio
+ggplot(wildschwein_dailysummary, aes(x=precip, y=ratio, col = season)) +
+  geom_point(size=0.8)+
+  geom_smooth(method=lm)+
+  labs(title = "Influence of precipitation on the share of static measurement points", subtitle = "per season")+
+  xlab("precipitation [mm]")+
+  ylab("static ratio")
+```
+
 
 
 ```{r}
@@ -387,6 +413,12 @@ The results show that there is an influence of temperature and precipitation in 
 Wild boars moved more in summer times compared to the other seasons throughout the year. With higher temperature wild boar move more. As soon as winter gets warmer with some temperatures, the wild boars move more. However, in summer the wild boar movement remain constant with increasing temperatures. One can think here that in winter one degree warmer will be notices faster than in summer. The reduced movement in winter could be the reason for preserving the energy (Thurfjell et al. 2014: 470). These results were already studied from other authors, which were discussed in the literature review chapter. But a reason why our findings are not clear enough could be that compared to the other studies, our research has wild boar data from Switzerland, where the weather cannot be compared with other countries and their respecting wild boars. Additionally, the year in which the wild boars were detected may have less seasonal differences, for example snow fall in spring.
 Precipitation generally caused increased movement in summer season and decreased movement during winter season. A suggested explanation may be that winter precipitation holds on for a longer time whereas summer precipitation holds on for a short period of time. Additionally, winter precipitation increases the effect of cold weather (Thurfjell et al. 2014: 470). As Morelle et al. discussed (2015: 23) because of the snow depth in winter the wild boar movement decreases. Overall, the findings from precipitation reassure that wild boars move less in winter and increase their movement in summer. 
 Individual wild boar data show that not all wild boars move a lot in the season of summer. Some wild boars move a lot in other seasons such as in autumn but looking at the results collectively summer is dominating with the high daily distances.
+
+## Limitations
+
+
+## Conclusion
+
 
 
 ## References
