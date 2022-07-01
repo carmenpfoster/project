@@ -1,9 +1,11 @@
 ---
 title: The influence of temperature and precipitation on the movement and use of habitat of wild boar in Switzerland
-subtitle: A subtle subtitle
+subtitle: GEO880 Computational Movement Analysis
 author: Vibiga Vinotharajah and Carmen Pfoster
-output: html_document
-
+output: 
+  html_document:
+    toc: true
+    toc_float: true
 ---
 
 
@@ -33,9 +35,11 @@ library(adehabitatLT)
 library(tmap)
 library(readr)
 tmap_mode("view")
+
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 ```
 
-``` {r loading wildboar data, echo = TRUE, warning = FALSE, message = FALSE}
+``` {r loading wildboar data}
 # Include tables with the function "kable"
 knitr::kable(head(wildschwein_BE))
 
@@ -64,7 +68,7 @@ Both datasets were accessed via the IDAweb portal of the Federal Office of Meteo
 
 On ??? Figure ??? one can see the whole study area and the two locations of the weather stations.
 
-```{r assigning season, echo = FALSE, warning = FALSE, message = FALSE}
+```{r assigning season}
 #assigning season to each measurement point
 wildschwein <- wildschwein %>% 
   mutate(Month = format(as.Date(DatetimeUTC), "%m"))
@@ -76,8 +80,8 @@ wildschwein <- wildschwein %>%
                     ifelse(wildschwein$Month == "09" | wildschwein$Month == "10" | wildschwein$Month == "11", "autumn", "no")))))
 ```
 
-```{r loading weather data, echo = FALSE, warning = FALSE, message = FALSE}
-## Reading the weather data
+```{r loading weather data}
+# Reading the weather data
 weatherData <- read_delim("order_103728_data_temp.txt", delim = ";")
 precipData <- read_delim("order_103873_data_precip.txt", delim = ";")
 # Creating additional dataframe, based on the legend.txt for adding
@@ -92,7 +96,7 @@ hoehe <- c(430,485) # in meters
 legend <- data.frame(stn,stn_names,koord_E,koord_N,hoehe)
 ```
 
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
+```{r}
 # Joining the station and temperature dataframes
 data_comb <- full_join(weatherData, legend, by="stn") %>% na.omit()
 data_comb <- full_join(data_comb, precipData, by= c("stn","time")) %>% na.omit()
@@ -110,7 +114,7 @@ data_sf <- data_sf %>%
 data_sf_lv95 <- st_transform(data_sf, 2056)
 ```
 
-```{r, echo = TRUE, warning = FALSE, message = FALSE}
+```{r}
 #Figure 1
 wildschwein_smry <- summarise(wildschwein)
 
@@ -140,7 +144,7 @@ To analyse the wild boar moving patterns two different approaches were implement
 - For the analysis of the amount of clustering that happened per day, the trajectories were segmented, similarly to the segmentation in Exercise 3. For every point the distance to the three preceding and following points were calculated. The mean of these six distances can be seen as the mean step length. Then all mean step lengths were classified as static when they are below the mean step length of all mean step lengths. Then the ratio of static points in all point was calculated. This was then again opposed to the temperature and precipitation data and the season classification like the before described daily movement.
 
 
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
+```{r}
 # plots for presentations
 #ueli <- filter(wildschwein, TierID == "1")
 #sabine <- filter(wildschwein, TierID == "2")
@@ -160,7 +164,7 @@ To analyse the wild boar moving patterns two different approaches were implement
   #ggtitle("Movement of Nicole (ID=5)")
 ```
 
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
+```{r}
 # plots for presentations
 #tm_shape(ueli)+
   #tm_dots(col="season")
@@ -173,7 +177,7 @@ To analyse the wild boar moving patterns two different approaches were implement
 ```
 
 
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
+```{r}
 data_sf_lv95 <- data_sf_lv95 %>% 
   group_by(date) %>% 
   mutate(temp = mean(tre200d0), precip = mean(rka150d0)) %>% 
@@ -190,7 +194,7 @@ wildschwein <- subset(wildschwein, select = -c(tre200d0, rka150d0))
 ```
 
 <!--
-```{r ueli, echo = FALSE, warning = FALSE, message = FALSE}
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
 ueli <- filter(wildschwein, TierID == "1")
 sabine <- filter(wildschwein, TierID == "2")
 nicole <- filter(wildschwein, TierID == "5")
@@ -220,7 +224,7 @@ ggplot(nicole, aes(E,N, colour=precip)) +
   ggtitle("Movement of Nicole (ID=5)")
 ```
 
-```{r ueli, echo = FALSE, warning = FALSE, message = FALSE}
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
 #testing segmentation on ueli
 ueli <- filter(wildschwein, TierID == "1")
 ueli <- ueli %>% 
@@ -261,13 +265,13 @@ ueli_dailysummary <- ueli %>%
             ratio = sum(static == TRUE)/(sum(static == TRUE)+ sum(static == FALSE)))
 ```
 
-```{r ueli, echo = FALSE, warning = FALSE, message = FALSE}
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
 ueli1 = subset(ueli, time=="20140529")
 ggplot(ueli1, aes(x = E, y = N, col = static)) +
   geom_point()+geom_path()
 ```
 
-```{r ueli, echo = FALSE, warning = FALSE, message = FALSE}
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
 # ueli temperature daily distance
 ggplot(ueli_dailysummary, aes(x=temp, y=daily_distance, col = season)) + geom_point()+geom_smooth(method=lm)+labs(title = "scatterplot ueli with trend per season")
 
@@ -287,7 +291,7 @@ ggplot(ueli_dailysummary, aes(x=temp, y=ratio)) + geom_point()+geom_smooth(metho
 ggplot(ueli_dailysummary, aes(x=temp, y=ratio)) + geom_point()+labs(title = "scatterplot ueli without trend")
 ```
 
-```{r ueli, echo = FALSE, warning = FALSE, message = FALSE}
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
 #ueli precipitation daily distance
 ggplot(ueli_dailysummary, aes(x=precip, y=daily_distance, col = season)) + geom_point()+geom_smooth(method=lm)+labs(title = "scatterplot ueli with trend per season")
 
@@ -307,14 +311,14 @@ ggplot(ueli_dailysummary, aes(x=precip, y=ratio)) + geom_point()+geom_smooth(met
 ggplot(ueli_dailysummary, aes(x=precip, y=ratio)) + geom_point()+labs(title = "scatterplot ueli without trend")
 ```
 
-```{r ueli, echo = FALSE, warning = FALSE, message = FALSE}
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
 #ueli movement ratio and seasons
 ggplot(ueli_dailysummary, aes(x=season, y = ratio))+
   geom_point()
 ```
 -->
 
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
+```{r}
 # calculating steplength for every wild boar (euclidean distance between sampling points)
 wildschwein_steplength <- wildschwein %>% 
   group_by(TierID) %>% 
@@ -431,7 +435,7 @@ for (i in wild_boars){
 
 ## Results
 
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
+```{r}
 #boxplot daily distance season
 ggplot(wildschwein_dailysummary, aes(x = season, y = daily_distance)) + 
   geom_boxplot()
@@ -440,7 +444,7 @@ ggplot(wildschwein_dailysummary, aes(x = season, y = daily_distance)) +
 This simple boxplot represents the daily distance, how far the wild boars moved, in each season without including the temperature. One can see that the daily distance is farer in autumn and summer compared to winter especially.
 
 
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
+```{r}
 #boxplot movement ratio and seasons
 ggplot(wildschwein_dailysummary, aes(x=season, y = ratio))+
   geom_boxplot()
@@ -449,7 +453,7 @@ ggplot(wildschwein_dailysummary, aes(x=season, y = ratio))+
 This boxplot shows the ratios from each season. If the ratio is closer to 1 then there is more clustering in the movement than if the ratio is closer to 0. Autumn and winter have the same ratio, but it is important to highlight that in winter the variance is bigger than in the other seasons. The reason is that there is not much data available for winter. The higher the static values are and thus the ratio is bigger, the higher is the clustering. Considering this the season spring has the most clustering from all seasons.
 
 
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
+```{r}
 # all wild boar temperature daily distance
 ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance, col = season)) + geom_point(size=0.8)+geom_smooth(method=lm)+labs(title = "scatterplot all wildboars with trend per season")
 ```
@@ -457,7 +461,7 @@ ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance, col = season)) + 
 In this plot one can see the difference between the daily distance per seasons depending on the temperature. The season summer represents more daily distance from wild boars with higher temperatures. Winter shows less daily distance with lower temperature and higher daily distance with higher temperatures. The increase in the season winter is higher than in the season summer, which is represented with the trend lines. In other words, 1 degree warmer in winter has a bigger influence on the movement of wild boars than in other seasons. The season autumn has the most daily distances between the temperatures 0 and 20 degrees. Additionally, the plot shows that with warmer temperatures the daily distances are higher.
 
 
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
+```{r}
 # übersicht temperature und pro tag zurückgelegte distanz für jedes einzelne wildschwein
 ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance, col = season)) +
   geom_point()+
@@ -472,7 +476,7 @@ Looking at each plot from every wild boar, the plots represent how different the
 
 
 
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
+```{r}
 #all wild boar precipitation daily distance
 ggplot(wildschwein_dailysummary, aes(x=precip, y=daily_distance, col = season)) + geom_point(size=0.8)+geom_smooth(method=lm)+labs(title = "scatterplot all wildboars with trend per season")
 ```
@@ -480,7 +484,7 @@ ggplot(wildschwein_dailysummary, aes(x=precip, y=daily_distance, col = season)) 
 In this plot the precipitation is analysed in connection to daily distance. The precipitation data has lots of 0 precipitation data, which is represented in the trend lines per season. However, one can see that the movement from wild boars is higher in autumn. With higher precipitation the movement in winter increases whereas in summer decreases.
 
 
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
+```{r}
 # übersicht precipitation und pro tag zurückgelegte distanz für jedes einzelne wildschwein
 ggplot(wildschwein_dailysummary, aes(x=precip, y=daily_distance, col = season)) +
   geom_point()+
@@ -491,6 +495,91 @@ Here the precipitation and the daily distance for each wild boar is represented 
 
 
 individual plots of wild boar (habitat)
+
+```{r}
+# determining animal with most measurements
+wildschwein_count <- wildschwein_steplength %>%
+  st_drop_geometry() %>% 
+  group_by(TierName) %>% 
+  summarise(n_of_measurements = n())
+
+knitr::kable(wildschwein_count)
+
+ggplot(wildschwein_count, aes(x=TierName, y=n_of_measurements)) +
+  geom_bar(stat="identity")
+```
+
+```{r}
+#analysing habitat for the three wild boars with the most measurement points
+
+most_measured <- filter(wildschwein_steplength, TierName == "Amos" | TierName == "Caroline" | TierName == "Miriam")
+
+amos <- filter(most_measured, TierName == "Amos")
+caroline <- filter(most_measured, TierName == "Caroline")
+miriam <- filter(most_measured, TierName == "Miriam")
+```
+
+```{r}
+# individual analysis clustering vs. moving
+tm_shape(amos) +
+  tm_dots(col = "static")+
+  tmap_options(basemaps = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg")
+
+tm_shape(caroline) +
+  tm_dots(col = "static")+
+  tmap_options(basemaps = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg")
+
+tm_shape(miriam) +
+  tm_dots(col = "static")+
+  tmap_options(basemaps = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg")
+```
+
+
+```{r}
+#individual analysis season
+tm_shape(amos) +
+  tm_dots(col = "season")+
+  tmap_options(basemaps = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg")
+
+tm_shape(caroline) +
+  tm_dots(col = "season")+
+  tmap_options(basemaps = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg")
+
+tm_shape(miriam) +
+  tm_dots(col = "season")+
+  tmap_options(basemaps = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg")
+```
+
+```{r}
+#individual analysis temperature
+tm_shape(amos) +
+  tm_dots(col = "temp")+
+  tmap_options(basemaps = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg")
+
+tm_shape(caroline) +
+  tm_dots(col = "temp")+
+  tmap_options(basemaps = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg")
+
+tm_shape(miriam) +
+  tm_dots(col = "temp")+
+  tmap_options(basemaps = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg")
+```
+
+
+```{r}
+tm_shape(amos) +
+  tm_dots(col = "precip")+
+  tmap_options(basemaps = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg")
+
+tm_shape(caroline) +
+  tm_dots(col = "precip")+
+  tmap_options(basemaps = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg")
+
+tm_shape(miriam) +
+  tm_dots(col = "precip")+
+  tmap_options(basemaps = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg")
+```
+
 
 
 ## Discussion
