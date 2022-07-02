@@ -67,6 +67,7 @@ knitr::kable(head(wildschwein))
 Table 1: Overview of the used wild boar data structure
 
 
+
 As the goal of this research is to analyze the influence of weather and season on the movement patterns of wild boar the following additional data was used:
 - Mean daily temperature [°C] of two weather stations (Neuchâtel and Cressier)
 - daily precipitation [mm] of the same two weather stations
@@ -125,6 +126,7 @@ tm_shape(wildschwein_convex)+
   tm_dots(col="red", group='Weather station')
 ```
 Figure 1: Overview of the study area (used weather stations and convex polygon of all wildboar data points)
+
 
 
 For reasons of simplicity, the wild boar data was classified into the meteorological seasons, which always classifies the whole months into one season:
@@ -201,7 +203,10 @@ summary(wildschwein_steplength$stepLength)
 #histogram steplength, line == mean
 ggplot(wildschwein_steplength, aes(stepLength)) +
   geom_histogram(binwidth = 1) +
-  geom_vline(xintercept = mean(wildschwein_steplength$stepLength,na.rm = TRUE))
+  geom_vline(xintercept = mean(wildschwein_steplength$stepLength,na.rm = TRUE))+
+  ggtitle("Histogram of all mean steplength")+
+  theme(plot.caption = element_text(hjust = 0)) +
+  labs(caption = "Figure 2: mean steplength for every step and total mean steplength")
 
 #steplength < mean steplength --> static (to be discussed!!)
 wildschwein_steplength <- wildschwein_steplength %>%
@@ -231,9 +236,12 @@ knitr::kable(wildschwein_count)
 ggplot(wildschwein_count, aes(x=TierName, y=n_of_measurements)) +
   geom_bar(stat="identity")+
   ggtitle("Overview of measurements per wild boar")+
-  ylab("# of measurements")
+  ylab("# of measurements")+
+  theme(plot.caption = element_text(hjust = 0)) +
+  labs(caption = "Figure 3: Number of tracked locations per wild boar")
+
 ```
-Figure ???
+
 
 As it can be seen in Figure ?? the wild boars with the most measurements are Caroline, Amos and Miriam. The locations of those three wild boars were then plotted in a map with the Swiss orthofoto as the basemap. Then the points were classified depending on the season, temperature, precipitation or the ratio of static points and searched for interessting patterns.
 
@@ -254,8 +262,10 @@ miriam <- filter(most_measured, TierName == "Miriam")
 #boxplot daily distance season
 ggplot(wildschwein_dailysummary, aes(x = season, y = daily_distance)) + 
   geom_boxplot()+
-  labs(title = "Distance travelled per day", subtitle = "per wild boar")+
-  ylab("distance [m]")
+  labs(title = "Distance travelled per day", subtitle = "per wild boar", caption = " Figure 4: Boxplot of calculated distances per day and wild boar split up in the seasons")+
+  ylab("distance [m]")+
+  theme(plot.caption = element_text(hjust = 0))
+
 ```
 
 This simple boxplot represents the daily distance, how far the wild boars moved, in each season without including the temperature. One can see that the daily distance is farer in autumn and summer compared to winter especially.
@@ -265,8 +275,9 @@ This simple boxplot represents the daily distance, how far the wild boars moved,
 #boxplot movement ratio and seasons
 ggplot(wildschwein_dailysummary, aes(x=season, y = ratio))+
   geom_boxplot()+
-  labs(title = "Share of static measurement points per day", subtitle = "per wild boar")+
-  ylab("ratio")
+  labs(title = "Share of static measurement points per day", subtitle = "per wild boar", caption = "Figure 5: Boxplot of the ratio of static measurements per wild boar and day split up into the 4 seasons")+
+  ylab("ratio")+
+  theme(plot.caption = element_text(hjust = 0))
 ```
 
 This boxplot shows the ratios from each season. If the ratio is closer to 1 then there is more clustering in the movement than if the ratio is closer to 0. Autumn and winter have the same ratio, but it is important to highlight that in winter the variance is bigger than in the other seasons. The reason is that there is not much data available for winter. The higher the static values are and thus the ratio is bigger, the higher is the clustering. Considering this the season spring has the most clustering from all seasons.
@@ -277,9 +288,10 @@ This boxplot shows the ratios from each season. If the ratio is closer to 1 then
 ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance, col = season)) + 
   geom_point(size=0.9)+
   geom_smooth(method=lm)+
-  labs(title = "Influence of temperature on the travelled distance per day", subtitle = "per season")+
+  labs(title = "Influence of temperature on the travelled distance per day", subtitle = "per season", caption = "Figure 6: Scatterplot of mean temperature and travelled distance")+
   xlab("temperature [°C]")+
-  ylab("distance [m]")
+  ylab("distance [m]")+
+  theme(plot.caption = element_text(hjust = 0))
 ```
 
 In this plot one can see the difference between the daily distance per seasons depending on the temperature. The season summer represents more daily distance from wild boars with higher temperatures. Winter shows less daily distance with lower temperature and higher daily distance with higher temperatures. The increase in the season winter is higher than in the season summer, which is represented with the trend lines. In other words, 1 degree warmer in winter has a bigger influence on the movement of wild boars than in other seasons. The season autumn has the most daily distances between the temperatures 0 and 20 degrees. Additionally, the plot shows that with warmer temperatures the daily distances are higher.
@@ -290,9 +302,10 @@ In this plot one can see the difference between the daily distance per seasons d
 ggplot(wildschwein_dailysummary, aes(x=temp, y=ratio, col = season)) +
   geom_point(size=0.8)+
   geom_smooth(method=lm)+
-  labs(title = "Influence of temperature on the share of static measurement points", subtitle = "per season")+
+  labs(title = "Influence of temperature on the share of static measurement points", subtitle = "per season", caption = "Figure 7: Scatterplot of the mean temperature and the ratio of static measurements")+
   xlab("temperature [°C]")+
-  ylab("distance [m]")
+  ylab("distance [m]")+
+  theme(plot.caption = element_text(hjust = 0))
 ```
 
 
@@ -303,9 +316,10 @@ ggplot(wildschwein_dailysummary, aes(x=temp, y=ratio, col = season)) +
 # übersicht temperature und pro tag zurückgelegte distanz für jedes einzelne wildschwein
 ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance, col = season)) +
   geom_point()+
-  labs(title = "Influence of temperature on the travelled distance per day", subtitle = "per season for all wild boars seperately")+
+  labs(title = "Influence of temperature on the travelled distance per day", subtitle = "per season for all wild boars seperately", caption = "Figure 8: Scatterplot of mean temperature and travelled distance for every wild boar seperately")+
   xlab("temperature [°C]")+
   ylab("distance [m]")+
+  theme(plot.caption = element_text(hjust = 0))+
   facet_wrap(~TierName,labeller = label_value)
 ```
 
@@ -321,9 +335,10 @@ Looking at each plot from every wild boar, the plots represent how different the
 #all wild boar precipitation daily distance
 ggplot(wildschwein_dailysummary, aes(x=precip, y=daily_distance, col = season)) + 
   geom_point(size=0.9)+geom_smooth(method=lm)+
-  labs(title = "Influence of precipitation on the travelled distance per day", subtitle = "per season")+
+  labs(title = "Influence of precipitation on the travelled distance per day", subtitle = "per season", caption = "Figure 9: Scatterplot of daily precipitation and travelled distance")+
   xlab("precipitation [mm]")+
-  ylab("distance [m]")
+  ylab("distance [m]")+
+  theme(plot.caption = element_text(hjust = 0))
 ```
 
 In this plot the precipitation is analysed in connection to daily distance. The precipitation data has lots of 0 precipitation data, which is represented in the trend lines per season. However, one can see that the movement from wild boars is higher in autumn. With higher precipitation the movement in winter increases whereas in summer decreases.
@@ -334,9 +349,10 @@ In this plot the precipitation is analysed in connection to daily distance. The 
 ggplot(wildschwein_dailysummary, aes(x=precip, y=ratio, col = season)) +
   geom_point(size=0.8)+
   geom_smooth(method=lm)+
-  labs(title = "Influence of precipitation on the share of static measurement points", subtitle = "per season")+
+  labs(title = "Influence of precipitation on the share of static measurement points", subtitle = "per season", caption = "Figure 10: Scatterplot of daily precipitation and the ratio of static measurement points per wild boar")+
   xlab("precipitation [mm]")+
-  ylab("static ratio")
+  ylab("static ratio")+
+  theme(plot.caption = element_text(hjust = 0))
 ```
 
 
@@ -345,9 +361,10 @@ ggplot(wildschwein_dailysummary, aes(x=precip, y=ratio, col = season)) +
 # übersicht precipitation und pro tag zurückgelegte distanz für jedes einzelne wildschwein
 ggplot(wildschwein_dailysummary, aes(x=precip, y=daily_distance, col = season)) +
   geom_point()+
-  labs(title = "Influence of precipitation on the travelled distance per day", subtitle = "per season for all wild boars seperately")+
+  labs(title = "Influence of precipitation on the travelled distance per day", subtitle = "per season for all wild boars seperately", caption = "Figure 11: Scatterplot of precipitation and travelled distance for every wild boar seperately")+
   xlab("precipitation [mm]")+
   ylab("distance [m]")+
+  theme(plot.caption = element_text(hjust = 0))+
   facet_wrap(~TierName,labeller = label_value)
 ```
 
@@ -367,7 +384,40 @@ tm_shape(amos) +
   tmap_options(basemaps = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg")
 ```
 
+```{r}
+#individual analysis season
+tm_shape(amos) +
+  tm_dots(col = "temp")+
+  tm_shape(caroline) +
+  tm_dots(col = "temp")+
+  tm_shape(miriam) +
+  tm_dots(col = "temp")
+  tmap_options(basemaps = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg")
+```
 
+
+```{r}
+#individual analysis season
+tm_shape(amos) +
+  tm_dots(col = "precip")+
+  tm_shape(caroline) +
+  tm_dots(col = "precip")+
+  tm_shape(miriam) +
+  tm_dots(col = "precip")
+  tmap_options(basemaps = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg")
+```
+
+
+```{r}
+#individual analysis season
+tm_shape(amos) +
+  tm_dots(col = "static")+
+  tm_shape(caroline) +
+  tm_dots(col = "static")+
+  tm_shape(miriam) +
+  tm_dots(col = "static")
+  tmap_options(basemaps = "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg")
+```
 
 ## Discussion
 
