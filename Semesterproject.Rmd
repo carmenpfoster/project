@@ -320,7 +320,7 @@ ggplot(wildschwein_dailysummary, aes(x=season, y = ratio))+
 Similarly to the travelled daily distance the ratio of static point on all tracking points per day were analysed. This boxplot (Figure 7) shows the ratios from each season. If the ratio is closer to 1 then there is more clustering in the movement than if the ratio is closer to 0. Autumn and winter have the same ratio, but it is important to highlight that in winter the variance is bigger than in the other seasons. The reason for that might be the small data availability for the winter. The higher the static values are and thus the ratio is bigger, the higher is the clustering. Considering this, the season spring has the most clustering from all seasons.
 
 
-```{r difference of "ratio" per season}
+```{r difference of ratio per season}
 #statistical difference season - ratio
 model_ratio <- lm(ratio~season, data = wildschwein_dailysummary)
 
