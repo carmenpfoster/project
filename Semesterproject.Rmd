@@ -1,6 +1,6 @@
 ---
 title: The influence of temperature and precipitation on the movement and use of habitat of wild boar in Switzerland
-subtitle: GEO880 Computational Movement Analysis
+subtitle: GEO880 Computational Movement Analysis - Semester Project
 author: Vibiga Vinotharajah and Carmen Pfoster
 output: 
   html_document:
@@ -403,7 +403,7 @@ ggplot(wildschwein_dailysummary, aes(x=temp, y=daily_distance, col = season)) +
   facet_wrap(~TierName,labeller = label_value)
 ```
 
-Looking at each plot from every wild boar, the plots represent how different the movement from each wild boar is. For example, “Franz” moves in summer more compared to the other seasons. “Caroline” moves a lot in almost every season. It also shows that there are wildboars that were not tracked in every season. Also, the plot shows in general that in summer and autumn there is more movement than in other seasons.
+In Figure 12 for each wild boar a plot is created which represents the influence of temperature on the travelled distance throughout the year. It is categorized in seasons. Some wild boars have no data points in some seasons. For example, "Claude" has only data points in spring. On the other hand, one can see how the movement from each wild boar differs. "Caroline" moves a lot in almost every season, whereas "Rosa" moves a lot in spring compared to the other seasons. 
 
 
 ```{r precipitation-distance}
@@ -416,7 +416,7 @@ ggplot(wildschwein_dailysummary, aes(x=precip, y=daily_distance, col = season)) 
   theme(plot.caption = element_text(hjust = 0))
 ```
 
-Know the same analysis is made for precipitation instead of temperature. In this plot the daily distance is analysed in connection to precipitation. The precipitation data includes lots of days with no precipitation, which also affects the trend lines of the seasons. However, one can see that the movement from wild boars is higher in autumn precipitation. With higher precipitation the movement in winter increases whereas in summer it decreases. One has to consider that the uncertainty is increasing with precipitation as there is only little data available with a lot of precipitation.
+Now the same analysis is made for precipitation instead of temperature. In this plot the daily distance is analysed in connection to precipitation. The precipitation data includes lots of days with no precipitation, which also affects the trend lines of the seasons. However, one can see that the movement from wild boars is higher in autumn precipitation. With higher precipitation the movement in winter increases whereas in summer it decreases. One has to consider that the uncertainty is increasing with precipitation as there is only little data available with a lot of precipitation.
 
 
 ```{r regression-distance-precipitation}
@@ -465,9 +465,7 @@ ggplot(wildschwein_dailysummary, aes(x=precip, y=daily_distance, col = season)) 
   facet_wrap(~TierName,labeller = label_value)
 ```
 
-Here the precipitation and the travelled distance for each wild boar is represented individually. Again the 0 precipitation data points are clearly visible and there are only few data points with more precipitation. In the whole, the plots represent that the wild boars are more active in summer precipitation than in winter. If we look at the wild boar individually, one can see that some wild boars only move in winter precipitation and others mostly in summer precipitation. In autumn the precipitation is closer to 0 and because of that the daily distance is higher, whereas in winter the daily distance is lower.
-
-
+Here the influence of precipitation on the travelled distance for each wild boar is represented individually. The most data points in each plot are distributed around 0 precipitation. Some wild boars move more in summer and spring precipitation, whereas other wild boars only moven in certain seasonal precipitation. For example, "Ueli" has more movement in summer and spring precipitation than in other seasonal precipitation. Summarizing all the plots, one can see that most of the wild boar movement happen in summer and autumn precipitation. The movement in winter precipitation is the lowest.
 
 
 Finally, for the analysis of the habitat during different weather conditions or seasons, the movement through the whole year from the wild boar "Caroline" was extracted and showed in the following maps. It is split into three maps: season, temperature, and precipitation.
@@ -511,10 +509,17 @@ Compared to the temperature and seasons, the precipitation does not show off a r
 
 ## Discussion
 
-The results show that there is an influence of temperature and precipitation in the wild boar movement, where especially the seasonal difference between summer and winter stands out. In summer the wild boars have more a clustered moving pattern and mostly use the habitats near humans such as fields and crops. In winter the moving pattern is more clustered and mostly located in forests. Autumn and spring do not have a clustered moving pattern, because of the temperatures wild boars tend to move almost everywhere. 
-Wild boars move more in summer times compared to the other seasons throughout the year. With higher temperature wild boar tend to move more. As soon as winter gets warmer, the wild boars’ movement is higher. However, in summer the wild boar movement remains constant with increasing temperatures within the summer season. On the other hand, in winter one degree higher will be noticed faster regarding the moving pattern compared to summer. The reduced movement in winter could be the reason for preserving the energy (Thurfjell et al. 2014: 470). These results were already studied from other authors, which were discussed in the literature review chapter. The statistical tests reassure that there are seasonal differences between some seasons. Especially, the seasonal difference between summer and winter is significant. Statistically, there is no significant difference between summer and autumn. Also, there are no difference between spring and the other seasons. These statistical predictions go along with the plots, where spring does not highlight a significant moving pattern in most of the results.
-Precipitation generally caused increased movement in summer season and decreased movement during winter season. A suggested explanation may be that winter precipitation holds on for a longer time whereas summer precipitation holds on for a short period of time. Additionally, winter precipitation may increases the effect of cold weather (Thurfjell et al. 2014: 470). As Morelle et al. discussed (2015: 23) because of the snow depth in winter the wild boar movement decreases. Overall, the findings from precipitation reassure that wild boars move less in winter and increase their movement in summer. 
+The main findings of our project is that there is an influence of temperature and precipitation in the wild boar movement which even highlights a seasonal difference. Especially the seasonal difference between summer and winter is highlighted. In summer the wild boar movement has a clustered moving pattern and locations such as crops and fields are used as habitats. In winter the wild boars have also a clustered moving pattern where they use the forest as their habitat. The results show that autumns and spring do not have a specific clustered moving pattern. Especially, in autumn the wild boars tend to move everywhere, because of the mild temperatures and the low precipitations.
 
+As already said wild boars move the most in summer and autumn compared to the other seasons (Figure 9). Within the summer season higher temperatures do not affect the travelled distance per day, which means that the wild boar movement remains constant with increasing temperatures in summer. On the other hand, one degree warmer in the winter season the wild boar movement increases remarkably. But overall the wild boar move less in winter, because of the low temperatures. Thus, one can say that higher temperatures increase and low temperatures decrease the wild boar movement. 
+
+The statistical tests go along with the visual results that there is a seasonal difference. Especially, the difference between summer and winter is significant. Statistically, there is no significant difference between summer and autumn. Also, there are no difference between spring and the other seasons. Overall the tests verify that temperature has an influence on the wild boar movement. 
+
+Precipitation generally caused increased movement in summer and decreased movement during winter. A suggested explanation for this finding may be that winter precipitation holds on for a longer time whereas summer precipitation holds on for a short period of time. Additionally, winter precipitation may increase the effect of cold weather (Thurfjell et al. 2014: 470). As Morelle et al. discussed (2015: 23) because of the snow depth in winter the wild boar movement decreases.
+In contrary to the influence of temperature, the influence of precipitation is not shown clear enough, visually and statistically.
+A seasonal difference between the precipitation in summer and winter is highlighted in the plots, which we already discussed before. This main finding leads us to the conclusion that precipitation does have an influence on the wild boar movement.
+
+All these results were already studied from other authors, which were discussed in the literature review chapter. As we have expected from previous study, weather effects the wild boar movement and that there is a seasonal difference between winter and summer. 
 
 ## Limitations
 One limitation of this project is the classification of the seasons. There are different classifications for seasons such as the meteorological division of seasons or astronomical seasons. In this project, we have chosen the meteorological division for simplicity. Thus, the results and the findings may have different results depending on the classification of seasons.
@@ -532,7 +537,8 @@ The different maps from the wild boar caroline give an overview of the movement 
 
 
 ## Conclusion
-In conclusion, in this project, we found out the there are seasonal differences regarding the wild boar movement. Low temperatures let wild boars move less and use only some habitat, where they have mostly a clustered moving pattern. With high temperatures, such as in summer, wild boars have also a clustered moving pattern but tend to move more and use different habitats such as forests, fields, and crops. Overall, they use the habitats near human beings. In seasons autumn and spring wild boars have no significant moving pattern and they do use different habitats. The influence of precipitations shows that the movement in summer precipitation is higher than in winter precipitation, which is again dependent on the temperatures. The results from this project give a quick overview over the topic of wild boar movement and the effects of weather. This project reassures the main arguments, which were already stated in other studies and presents the main findings in a different way. 
+In conclusion, in this project, we found out the that the temperature and precipitation influence the wild boar movement, where the seasonal difference between summer and winter is the highlight. With higher temperatures wild boar move more and with low temperatures the wild boar movement decreases. In summer, wild boars have a less clustered moving pattern, where they use different locations as their habitats. Whereas in winter, the wild boars move less and have a clustered moving pattern, where they only use some habitats.
+In seasons autumn and spring wild boars have no significant moving pattern and they do use different habitats. The influence of precipitations shows that the movement in summer precipitation is higher than in winter precipitation, which is again dependent on the temperatures. The results from this project give a quick overview over the topic of wild boar movement and the effects of weather. This project reassures the main arguments, which were already stated in other studies and presents the main findings in a different way. 
 For further research, analysis with canopies and detailed interpretations would be of great interest. Furthermore, to analyse the effects of weather on different animal movement and from different countries will help the humanity to understand the environment and the animals better.
 
 
